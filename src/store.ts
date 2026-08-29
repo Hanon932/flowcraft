@@ -46,6 +46,7 @@ interface FlowStore {
   deleteFlow: (id: string) => void
 
   addStep: () => void
+  addConnectedStep: (sourceId: string) => void
   updateStep: (nodeId: string, data: Partial<StepData>) => void
   deleteStep: (nodeId: string) => void
 
@@ -126,6 +127,36 @@ export const useFlowStore = create<FlowStore>()(
               : d,
           ),
           selectedNodeId: id,
+        }))
+      },
+      addConnectedStep: (sourceId) => {
+        const doc = get().activeDoc()
+        const source = doc.nodes.find((n) => n.id === sourceId)
+        if (!source) return
+        const newId = nanoid(6)
+        set((s) => ({
+          docs: s.docs.map((d) =>
+            d.id === s.activeId
+              ? {
+                  ...d,
+                  nodes: [
+                    ...d.nodes,
+                    {
+                      id: newId,
+                      type: 'step',
+                      position: { x: source.position.x, y: source.position.y + 160 },
+                      data: { title: `ステップ ${d.nodes.length + 1}`, manual: '' },
+                    },
+                  ],
+                  edges: [
+                    ...d.edges,
+                    { id: `e-${sourceId}-${newId}`, source: sourceId, target: newId },
+                  ],
+                  updatedAt: Date.now(),
+                }
+              : d,
+          ),
+          selectedNodeId: newId,
         }))
       },
       updateStep: (nodeId, data) => {
