@@ -14,4 +14,5 @@ export interface FlowDoc {
   nodes: StepNode[]
   edges: Edge[]
   updatedAt: number
+  driveFileId?: string
 }

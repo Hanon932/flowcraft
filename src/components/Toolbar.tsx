@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { useFlowStore } from '../store'
 import type { FlowDoc } from '../types'
+import GoogleDriveMenu from './GoogleDriveMenu'
 
 export default function Toolbar() {
   const doc = useFlowStore((s) => s.activeDoc())
@@ -83,6 +84,8 @@ export default function Toolbar() {
             閲覧
           </button>
         </div>
+
+        <GoogleDriveMenu />
 
         <button
           type="button"

@@ -54,6 +54,8 @@ interface FlowStore {
   onConnect: (connection: Connection) => void
 
   importDoc: (doc: FlowDoc) => void
+  importFromDrive: (doc: FlowDoc, driveFileId: string) => void
+  setDriveFileId: (docId: string, driveFileId: string) => void
 }
 
 const initialDoc = createDoc('サンプルフロー')
@@ -182,7 +184,20 @@ export const useFlowStore = create<FlowStore>()(
       },
 
       importDoc: (doc) => {
-        set((s) => ({ docs: [...s.docs, doc], activeId: doc.id, selectedNodeId: null }))
+        set((s) => ({
+          docs: [...s.docs, { ...doc, driveFileId: undefined }],
+          activeId: doc.id,
+          selectedNodeId: null,
+        }))
+      },
+      importFromDrive: (doc, driveFileId) => {
+        const localDoc: FlowDoc = { ...doc, id: nanoid(8), driveFileId }
+        set((s) => ({ docs: [...s.docs, localDoc], activeId: localDoc.id, selectedNodeId: null }))
+      },
+      setDriveFileId: (docId, driveFileId) => {
+        set((s) => ({
+          docs: s.docs.map((d) => (d.id === docId ? { ...d, driveFileId } : d)),
+        }))
       },
     }),
     { name: 'flowcraft-storage' },
