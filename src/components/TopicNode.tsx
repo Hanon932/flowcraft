@@ -36,7 +36,7 @@ function TopicNode({ id, data, selected }: NodeProps<MindMapNodeData>) {
           onChange={(e) => updateStep(id, { text: e.target.value })}
           onBlur={() => setEditing(false)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') e.currentTarget.blur()
+            if (e.key === 'Enter' || e.key === 'Escape') e.currentTarget.blur()
           }}
           style={{ minWidth: 120 }}
           className={`rounded-full px-4 py-2 text-sm font-medium shadow-sm outline-none ring-2 ring-sky-400 ${

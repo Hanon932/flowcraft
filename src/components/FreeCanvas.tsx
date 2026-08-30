@@ -15,14 +15,24 @@ export default function FreeCanvas() {
   const onEdgesChange = useFlowStore((s) => s.onEdgesChange)
   const onConnect = useFlowStore((s) => s.onConnect)
   const setSelectedNodeId = useFlowStore((s) => s.setSelectedNodeId)
+  const deleteStep = useFlowStore((s) => s.deleteStep)
 
   const nodes = useMemo<Node[]>(
     () => doc.nodes.map((n) => ({ ...n, selected: n.id === selectedNodeId })),
     [doc.nodes, selectedNodeId],
   )
 
+  function handleKeyDown(e: React.KeyboardEvent) {
+    const target = e.target as HTMLElement
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
+    if (e.key !== 'Delete' && e.key !== 'Backspace') return
+    if (mode !== 'edit' || !selectedNodeId) return
+    e.preventDefault()
+    deleteStep(selectedNodeId)
+  }
+
   return (
-    <div className="h-full w-full bg-neutral-50">
+    <div className="h-full w-full bg-neutral-50" onKeyDown={handleKeyDown}>
       <ReactFlow
         nodes={nodes}
         edges={doc.edges}
