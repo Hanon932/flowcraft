@@ -1,5 +1,6 @@
 import { memo, useState } from 'react'
 import { Handle, Position, type NodeProps } from 'reactflow'
+import { useClickOutside } from '../lib/useClickOutside'
 import { useFlowStore } from '../store'
 import type { StepData, StepShape } from '../types'
 
@@ -48,6 +49,7 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
   const addConnectedStep = useFlowStore((s) => s.addConnectedStep)
   const updateStep = useFlowStore((s) => s.updateStep)
   const [shapeMenuOpen, setShapeMenuOpen] = useState(false)
+  const shapeMenuRef = useClickOutside<HTMLDivElement>(shapeMenuOpen, () => setShapeMenuOpen(false))
   const shape = data.shape ?? 'rectangle'
   const isEdit = mode === 'edit'
   const polygonPoints = SHAPE_POLYGON_POINTS[shape]
@@ -118,7 +120,7 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
       {isEdit && (
         <>
           {/* 図形切替ボタン */}
-          <div className="absolute -left-2 -top-2 z-10">
+          <div ref={shapeMenuRef} className="absolute -left-2 -top-2 z-10">
             <button
               type="button"
               title="図形の種類を変更"

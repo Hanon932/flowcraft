@@ -1,6 +1,7 @@
 import { memo, useEffect, useState } from 'react'
 import { Handle, NodeResizer, Position, type NodeProps } from 'reactflow'
 import { BRANCH_COLORS } from '../lib/palette'
+import { useClickOutside } from '../lib/useClickOutside'
 import { useFlowStore } from '../store'
 import type { FreeShape, FreeShapeData } from '../types'
 
@@ -47,6 +48,8 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
   const [editing, setEditing] = useState(false)
   const [shapeMenuOpen, setShapeMenuOpen] = useState(false)
   const [colorMenuOpen, setColorMenuOpen] = useState(false)
+  const shapeMenuRef = useClickOutside<HTMLDivElement>(shapeMenuOpen, () => setShapeMenuOpen(false))
+  const colorMenuRef = useClickOutside<HTMLDivElement>(colorMenuOpen, () => setColorMenuOpen(false))
   const isEdit = mode === 'edit'
   const shape = data.shape
   const color = data.color ?? '#0ea5e9'
@@ -119,7 +122,7 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
 
       {isEdit && (
         <>
-          <div className="absolute -left-2 -top-2 z-10">
+          <div ref={shapeMenuRef} className="absolute -left-2 -top-2 z-10">
             <button
               type="button"
               title="図形の種類を変更"
@@ -155,7 +158,7 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
             )}
           </div>
 
-          <div className="absolute -right-2 -top-2 z-10">
+          <div ref={colorMenuRef} className="absolute -right-2 -top-2 z-10">
             <button
               type="button"
               title="色を変更"
