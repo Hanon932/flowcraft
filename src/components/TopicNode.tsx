@@ -21,6 +21,8 @@ function TopicNode({ id, data, selected }: NodeProps<MindMapNodeData>) {
   const isEdit = mode === 'edit'
   const isRoot = Boolean(data.root)
   const color = data.color ?? '#0ea5e9'
+  const hasChildren = Boolean(data.hasChildren)
+  const hiddenCount = typeof data.hiddenCount === 'number' ? data.hiddenCount : 0
 
   useEffect(() => {
     if (selected && data.text === '' && isEdit) {
@@ -92,6 +94,24 @@ function TopicNode({ id, data, selected }: NodeProps<MindMapNodeData>) {
           className="absolute -left-2 -top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs text-neutral-400 opacity-0 shadow-md ring-1 ring-neutral-200 transition-opacity hover:text-red-500 group-hover:opacity-100"
         >
           ×
+        </button>
+      )}
+
+      {hasChildren && (
+        <button
+          type="button"
+          title={data.collapsed ? '展開する' : '折りたたむ'}
+          onClick={(e) => {
+            e.stopPropagation()
+            updateStep(id, { collapsed: !data.collapsed })
+          }}
+          className={`absolute -bottom-2 -right-2 z-10 flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-bold shadow-md ring-1 transition-opacity ${
+            data.collapsed
+              ? 'bg-sky-500 text-white ring-sky-500'
+              : 'bg-white text-neutral-400 opacity-0 ring-neutral-200 hover:text-sky-500 group-hover:opacity-100'
+          }`}
+        >
+          {data.collapsed ? `+${hiddenCount}` : '−'}
         </button>
       )}
     </div>

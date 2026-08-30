@@ -17,6 +17,7 @@ export interface MindMapNodeData {
   text: string
   color?: string
   root?: boolean
+  collapsed?: boolean
   [key: string]: unknown
 }
 

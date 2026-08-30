@@ -1,13 +1,28 @@
+import { useEffect } from 'react'
 import FlowCanvas from './components/FlowCanvas'
 import FreeCanvas from './components/FreeCanvas'
 import ManualPanel from './components/ManualPanel'
 import MindMapCanvas from './components/MindMapCanvas'
 import Sidebar from './components/Sidebar'
 import Toolbar from './components/Toolbar'
+import { redo, undo } from './history'
 import { useFlowStore } from './store'
 
 function App() {
   const kind = useFlowStore((s) => s.activeDoc().kind ?? 'flowchart')
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
+      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'z') return
+      e.preventDefault()
+      if (e.shiftKey) redo()
+      else undo()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   return (
     <div className="flex h-screen w-screen bg-white text-neutral-900">

@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { redo, undo, useUndoStatus } from '../history'
 import { useFlowStore } from '../store'
 import type { FlowDoc, FreeShape } from '../types'
 import GoogleDriveMenu from './GoogleDriveMenu'
@@ -17,10 +18,12 @@ export default function Toolbar() {
   const setMode = useFlowStore((s) => s.setMode)
   const renameFlow = useFlowStore((s) => s.renameFlow)
   const addStep = useFlowStore((s) => s.addStep)
+  const applyFlowchartLayout = useFlowStore((s) => s.applyFlowchartLayout)
   const addFreeShape = useFlowStore((s) => s.addFreeShape)
   const importDoc = useFlowStore((s) => s.importDoc)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const kind = doc.kind ?? 'flowchart'
+  const { canUndo, canRedo } = useUndoStatus()
 
   function handleExport() {
     const blob = new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' })
@@ -61,13 +64,23 @@ export default function Toolbar() {
 
       <div className="flex items-center gap-1.5">
         {mode === 'edit' && kind === 'flowchart' && (
-          <button
-            type="button"
-            onClick={addStep}
-            className="rounded-full bg-sky-500 px-4 py-1.5 text-xs font-medium text-white shadow-sm shadow-sky-200 hover:bg-sky-600"
-          >
-            ＋ ステップ追加
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={addStep}
+              className="rounded-full bg-sky-500 px-4 py-1.5 text-xs font-medium text-white shadow-sm shadow-sky-200 hover:bg-sky-600"
+            >
+              ＋ ステップ追加
+            </button>
+            <button
+              type="button"
+              onClick={applyFlowchartLayout}
+              title="ステップを上から順に綺麗に並べ直します"
+              className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100"
+            >
+              自動整列
+            </button>
+          </>
         )}
 
         {mode === 'edit' && kind === 'mindmap' && <MindMapLayoutMenu />}
@@ -87,6 +100,27 @@ export default function Toolbar() {
             ))}
           </div>
         )}
+
+        <div className="flex items-center gap-0.5">
+          <button
+            type="button"
+            onClick={undo}
+            disabled={!canUndo}
+            title="元に戻す（Ctrl+Z）"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:text-neutral-200 disabled:hover:bg-transparent"
+          >
+            ↶
+          </button>
+          <button
+            type="button"
+            onClick={redo}
+            disabled={!canRedo}
+            title="やり直す（Ctrl+Shift+Z）"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:text-neutral-200 disabled:hover:bg-transparent"
+          >
+            ↷
+          </button>
+        </div>
 
         <div className="flex rounded-full bg-neutral-100 p-0.5 text-xs">
           <button

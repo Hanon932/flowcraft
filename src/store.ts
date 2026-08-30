@@ -10,6 +10,7 @@ import {
 } from 'reactflow'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { computeFlowchartLayout } from './lib/flowchartLayout'
 import {
   angleToHandle,
   computeRadialLayout,
@@ -91,6 +92,7 @@ interface FlowStore {
 
   addStep: () => void
   addConnectedStep: (sourceId: string) => void
+  applyFlowchartLayout: () => void
   addMindMapChild: (parentId: string) => void
   applyMindMapLayout: (style: 'radial' | 'tree') => void
   addFreeShape: (shape: FreeShape) => void
@@ -207,6 +209,24 @@ export const useFlowStore = create<FlowStore>()(
               : d,
           ),
           selectedNodeId: newId,
+        }))
+      },
+      applyFlowchartLayout: () => {
+        const doc = get().activeDoc()
+        const positions = computeFlowchartLayout(doc.nodes, doc.edges)
+        set((s) => ({
+          docs: s.docs.map((d) =>
+            d.id === s.activeId
+              ? {
+                  ...d,
+                  nodes: d.nodes.map((n) => {
+                    const pos = positions.get(n.id)
+                    return pos ? { ...n, position: pos } : n
+                  }),
+                  updatedAt: Date.now(),
+                }
+              : d,
+          ),
         }))
       },
       addMindMapChild: (parentId) => {

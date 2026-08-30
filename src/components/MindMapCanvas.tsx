@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import ReactFlow, { Panel, type Node, type NodeTypes } from 'reactflow'
 import 'reactflow/dist/style.css'
+import { computeCollapseVisibility } from '../lib/mindmapLayout'
 import { useFlowStore } from '../store'
 import type { MindMapNodeData } from '../types'
 import ExportImagePanel from './ExportImagePanel'
@@ -19,9 +20,30 @@ export default function MindMapCanvas() {
   const addMindMapChild = useFlowStore((s) => s.addMindMapChild)
   const deleteStep = useFlowStore((s) => s.deleteStep)
 
+  const { hiddenIds, childCounts, descendantCounts } = useMemo(
+    () => computeCollapseVisibility(doc.nodes, doc.edges),
+    [doc.nodes, doc.edges],
+  )
+
   const nodes = useMemo<Node[]>(
-    () => doc.nodes.map((n) => ({ ...n, selected: n.id === selectedNodeId })),
-    [doc.nodes, selectedNodeId],
+    () =>
+      doc.nodes
+        .filter((n) => !hiddenIds.has(n.id))
+        .map((n) => ({
+          ...n,
+          selected: n.id === selectedNodeId,
+          data: {
+            ...n.data,
+            hasChildren: (childCounts.get(n.id) ?? 0) > 0,
+            hiddenCount: descendantCounts.get(n.id) ?? 0,
+          },
+        })),
+    [doc.nodes, selectedNodeId, hiddenIds, childCounts, descendantCounts],
+  )
+
+  const edges = useMemo(
+    () => doc.edges.filter((e) => !hiddenIds.has(e.source) && !hiddenIds.has(e.target)),
+    [doc.edges, hiddenIds],
   )
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -48,7 +70,7 @@ export default function MindMapCanvas() {
     <div className="h-full w-full bg-neutral-50" onKeyDown={handleKeyDown}>
       <ReactFlow
         nodes={nodes}
-        edges={doc.edges}
+        edges={edges}
         nodeTypes={nodeTypes}
         onNodesChange={mode === 'edit' ? onNodesChange : undefined}
         onEdgesChange={mode === 'edit' ? onEdgesChange : undefined}

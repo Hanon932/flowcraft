@@ -1,5 +1,5 @@
 import type { Edge } from 'reactflow'
-import type { AnyStepNode } from '../types'
+import type { AnyStepNode, MindMapNodeData } from '../types'
 
 export type HandleSide = 'top' | 'right' | 'bottom' | 'left'
 
@@ -18,7 +18,7 @@ export const OPPOSITE_HANDLE: Record<HandleSide, HandleSide> = {
   right: 'left',
 }
 
-function buildChildrenMap(nodes: AnyStepNode[], edges: Edge[]): Map<string, string[]> {
+export function buildChildrenMap(nodes: AnyStepNode[], edges: Edge[]): Map<string, string[]> {
   const map = new Map<string, string[]>()
   for (const n of nodes) map.set(n.id, [])
   for (const e of edges) {
@@ -128,4 +128,46 @@ export function recomputeEdgeHandles(
     const targetHandle = OPPOSITE_HANDLE[sourceHandle]
     return { ...e, sourceHandle, targetHandle }
   })
+}
+
+export interface CollapseVisibility {
+  hiddenIds: Set<string>
+  childCounts: Map<string, number>
+  descendantCounts: Map<string, number>
+}
+
+function countDescendants(
+  nodeId: string,
+  childrenMap: Map<string, string[]>,
+  memo: Map<string, number>,
+): number {
+  if (memo.has(nodeId)) return memo.get(nodeId)!
+  const children = childrenMap.get(nodeId) ?? []
+  const count = children.reduce((sum, c) => sum + 1 + countDescendants(c, childrenMap, memo), 0)
+  memo.set(nodeId, count)
+  return count
+}
+
+export function computeCollapseVisibility(nodes: AnyStepNode[], edges: Edge[]): CollapseVisibility {
+  const childrenMap = buildChildrenMap(nodes, edges)
+  const childCounts = new Map<string, number>()
+  for (const [nodeId, children] of childrenMap) childCounts.set(nodeId, children.length)
+
+  const descendantCounts = new Map<string, number>()
+  for (const n of nodes) countDescendants(n.id, childrenMap, descendantCounts)
+
+  const hiddenIds = new Set<string>()
+  function hideSubtree(nodeId: string) {
+    for (const child of childrenMap.get(nodeId) ?? []) {
+      if (!hiddenIds.has(child)) {
+        hiddenIds.add(child)
+        hideSubtree(child)
+      }
+    }
+  }
+  for (const n of nodes) {
+    if ((n.data as MindMapNodeData).collapsed) hideSubtree(n.id)
+  }
+
+  return { hiddenIds, childCounts, descendantCounts }
 }
