@@ -10,6 +10,13 @@ import {
 } from 'reactflow'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import {
+  angleToHandle,
+  computeRadialLayout,
+  computeTreeLayout,
+  OPPOSITE_HANDLE,
+  recomputeEdgeHandles,
+} from './lib/mindmapLayout'
 import { BRANCH_COLORS } from './lib/palette'
 import type { AnyStepNode, DocKind, FlowDoc, FreeShape, MindMapNodeData, StepData } from './types'
 
@@ -85,6 +92,7 @@ interface FlowStore {
   addStep: () => void
   addConnectedStep: (sourceId: string) => void
   addMindMapChild: (parentId: string) => void
+  applyMindMapLayout: (style: 'radial' | 'tree') => void
   addFreeShape: (shape: FreeShape) => void
   updateStep: (nodeId: string, data: Partial<StepData>) => void
   deleteStep: (nodeId: string) => void
@@ -239,6 +247,8 @@ export const useFlowStore = create<FlowStore>()(
         const color = isRoot
           ? BRANCH_COLORS[siblingIndex % BRANCH_COLORS.length]
           : (parentData.color ?? BRANCH_COLORS[0])
+        const sourceHandle = angleToHandle(angleDeg)
+        const targetHandle = OPPOSITE_HANDLE[sourceHandle]
 
         set((s) => ({
           docs: s.docs.map((d) =>
@@ -263,6 +273,8 @@ export const useFlowStore = create<FlowStore>()(
                       id: `e-${parentId}-${newId}`,
                       source: parentId,
                       target: newId,
+                      sourceHandle,
+                      targetHandle,
                       style: { stroke: color, strokeWidth: 2 },
                     },
                   ],
@@ -271,6 +283,32 @@ export const useFlowStore = create<FlowStore>()(
               : d,
           ),
           selectedNodeId: newId,
+        }))
+      },
+      applyMindMapLayout: (style) => {
+        const doc = get().activeDoc()
+        const root = doc.nodes.find((n) => (n.data as MindMapNodeData).root)
+        if (!root) return
+
+        const positions =
+          style === 'radial'
+            ? computeRadialLayout(doc.nodes, doc.edges, root.id)
+            : computeTreeLayout(doc.nodes, doc.edges, root.id)
+
+        set((s) => ({
+          docs: s.docs.map((d) =>
+            d.id === s.activeId
+              ? {
+                  ...d,
+                  nodes: d.nodes.map((n) => {
+                    const pos = positions.get(n.id)
+                    return pos ? { ...n, position: pos } : n
+                  }),
+                  edges: recomputeEdgeHandles(d.edges, positions, d.nodes),
+                  updatedAt: Date.now(),
+                }
+              : d,
+          ),
         }))
       },
       addFreeShape: (shape) => {

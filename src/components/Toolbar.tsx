@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { useFlowStore } from '../store'
 import type { FlowDoc, FreeShape } from '../types'
 import GoogleDriveMenu from './GoogleDriveMenu'
+import MindMapLayoutMenu from './MindMapLayoutMenu'
 
 const FREE_SHAPES: { key: FreeShape; icon: string; label: string }[] = [
   { key: 'rectangle', icon: '▭', label: '四角形を追加' },
@@ -68,6 +69,8 @@ export default function Toolbar() {
             ＋ ステップ追加
           </button>
         )}
+
+        {mode === 'edit' && kind === 'mindmap' && <MindMapLayoutMenu />}
 
         {mode === 'edit' && kind === 'freeform' && (
           <div className="flex gap-1 rounded-full bg-neutral-100 p-0.5">

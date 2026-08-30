@@ -6,6 +6,13 @@ import type { MindMapNodeData } from '../types'
 const handleClass =
   'h-2 w-2 !border-2 !border-white !bg-sky-500 opacity-0 transition-opacity group-hover:opacity-100'
 
+const HANDLE_SIDES: { position: Position; id: string }[] = [
+  { position: Position.Top, id: 'top' },
+  { position: Position.Right, id: 'right' },
+  { position: Position.Bottom, id: 'bottom' },
+  { position: Position.Left, id: 'left' },
+]
+
 function TopicNode({ id, data, selected }: NodeProps<MindMapNodeData>) {
   const mode = useFlowStore((s) => s.mode)
   const updateStep = useFlowStore((s) => s.updateStep)
@@ -24,10 +31,26 @@ function TopicNode({ id, data, selected }: NodeProps<MindMapNodeData>) {
 
   return (
     <div className="group relative">
-      <Handle type="target" position={Position.Top} id="top" isConnectableStart isConnectableEnd className={handleClass} />
-      <Handle type="source" position={Position.Right} id="right" isConnectableStart isConnectableEnd className={handleClass} />
-      <Handle type="source" position={Position.Bottom} id="bottom" isConnectableStart isConnectableEnd className={handleClass} />
-      <Handle type="source" position={Position.Left} id="left" isConnectableStart isConnectableEnd className={handleClass} />
+      {HANDLE_SIDES.map(({ position, id }) => (
+        <div key={id}>
+          <Handle
+            type="target"
+            position={position}
+            id={id}
+            isConnectableStart
+            isConnectableEnd
+            className={handleClass}
+          />
+          <Handle
+            type="source"
+            position={position}
+            id={id}
+            isConnectableStart
+            isConnectableEnd
+            className={handleClass}
+          />
+        </div>
+      ))}
 
       {editing ? (
         <input
