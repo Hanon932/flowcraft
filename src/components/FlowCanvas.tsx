@@ -1,12 +1,5 @@
 import { useMemo, useState } from 'react'
-import ReactFlow, {
-  Background,
-  Controls,
-  MiniMap,
-  Panel,
-  type Node,
-  type NodeTypes,
-} from 'reactflow'
+import ReactFlow, { Controls, Panel, type Node, type NodeTypes } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { copyBlobToClipboard, downloadBlob, flowToPngBlob } from '../lib/exportImage'
 import { useFlowStore } from '../store'
@@ -58,7 +51,7 @@ export default function FlowCanvas() {
   }
 
   return (
-    <div className="h-full w-full bg-neutral-50 dark:bg-neutral-950">
+    <div className="h-full w-full bg-neutral-50">
       <ReactFlow
         nodes={nodes}
         edges={doc.edges}
@@ -74,21 +67,14 @@ export default function FlowCanvas() {
         defaultEdgeOptions={{ style: { stroke: '#93c5fd', strokeWidth: 1.5 } }}
         fitView
       >
-        <Background gap={20} color="#dbeafe" />
         <Controls className="!rounded-xl !shadow-md" showInteractive={false} />
-        <MiniMap
-          pannable
-          zoomable
-          className="!hidden !rounded-xl !shadow-md sm:!block"
-          maskColor="rgba(226, 232, 240, 0.6)"
-        />
         <Panel position="top-right" className="flex flex-col items-end gap-1.5">
-          <div className="flex gap-1.5 rounded-full bg-white/90 p-1 shadow-md ring-1 ring-neutral-100 backdrop-blur dark:bg-neutral-800/90 dark:ring-neutral-700">
+          <div className="flex gap-1.5 rounded-full bg-white/90 p-1 shadow-md ring-1 ring-neutral-100 backdrop-blur">
             <button
               type="button"
               onClick={handleCopyImage}
               title="画像としてクリップボードにコピー（Excelなどに貼り付け可）"
-              className="rounded-full px-3 py-1 text-xs text-neutral-500 hover:bg-sky-50 hover:text-sky-600 dark:text-neutral-300"
+              className="rounded-full px-3 py-1 text-xs text-neutral-500 hover:bg-sky-50 hover:text-sky-600"
             >
               画像をコピー
             </button>
@@ -96,7 +82,7 @@ export default function FlowCanvas() {
               type="button"
               onClick={handleDownloadImage}
               title="PNG画像として保存"
-              className="rounded-full px-3 py-1 text-xs text-neutral-500 hover:bg-sky-50 hover:text-sky-600 dark:text-neutral-300"
+              className="rounded-full px-3 py-1 text-xs text-neutral-500 hover:bg-sky-50 hover:text-sky-600"
             >
               画像を保存
             </button>

@@ -41,12 +41,12 @@ export default function Toolbar() {
   }
 
   return (
-    <div className="flex items-center justify-between border-b border-neutral-100 bg-white px-5 py-2.5 dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="flex items-center justify-between border-b border-neutral-100 bg-white px-5 py-2.5">
       <input
         value={doc.name}
         onChange={(e) => renameFlow(doc.id, e.target.value)}
         disabled={mode !== 'edit'}
-        className="w-56 rounded-lg px-2 py-1 text-sm font-semibold text-neutral-800 outline-none focus:bg-sky-50 disabled:bg-transparent dark:text-neutral-100 dark:focus:bg-neutral-800"
+        className="w-56 rounded-lg px-2 py-1 text-sm font-semibold text-neutral-800 outline-none focus:bg-sky-50 disabled:bg-transparent"
       />
 
       <div className="flex items-center gap-1.5">
@@ -60,13 +60,13 @@ export default function Toolbar() {
           </button>
         )}
 
-        <div className="flex rounded-full bg-neutral-100 p-0.5 text-xs dark:bg-neutral-800">
+        <div className="flex rounded-full bg-neutral-100 p-0.5 text-xs">
           <button
             type="button"
             onClick={() => setMode('edit')}
             className={`rounded-full px-3 py-1 transition-colors ${
               mode === 'edit'
-                ? 'bg-white text-sky-600 shadow-sm dark:bg-neutral-700'
+                ? 'bg-white text-sky-600 shadow-sm'
                 : 'text-neutral-400 hover:text-neutral-600'
             }`}
           >
@@ -77,7 +77,7 @@ export default function Toolbar() {
             onClick={() => setMode('view')}
             className={`rounded-full px-3 py-1 transition-colors ${
               mode === 'view'
-                ? 'bg-white text-sky-600 shadow-sm dark:bg-neutral-700'
+                ? 'bg-white text-sky-600 shadow-sm'
                 : 'text-neutral-400 hover:text-neutral-600'
             }`}
           >
@@ -85,21 +85,21 @@ export default function Toolbar() {
           </button>
         </div>
 
-        <div className="mx-1 h-5 w-px bg-neutral-200 dark:bg-neutral-700" />
+        <div className="mx-1 h-5 w-px bg-neutral-200" />
 
         <GoogleDriveMenu />
 
         <button
           type="button"
           onClick={handleExport}
-          className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+          className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100"
         >
           エクスポート
         </button>
         <button
           type="button"
           onClick={handleImportClick}
-          className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+          className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100"
         >
           インポート
         </button>

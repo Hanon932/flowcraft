@@ -62,14 +62,14 @@ export default function GoogleDriveMenu() {
       <button
         type="button"
         onClick={handleSave}
-        className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100"
       >
         Driveに保存
       </button>
       <button
         type="button"
         onClick={handleOpenPicker}
-        className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100"
       >
         Driveから開く
       </button>
@@ -82,9 +82,9 @@ export default function GoogleDriveMenu() {
 
       {pickerOpen && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-neutral-900/30 backdrop-blur-sm">
-          <div className="max-h-[70vh] w-96 overflow-y-auto rounded-2xl bg-white p-4 shadow-xl dark:bg-neutral-800">
+          <div className="max-h-[70vh] w-96 overflow-y-auto rounded-2xl bg-white p-4 shadow-xl">
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
+              <h3 className="text-sm font-semibold text-neutral-800">
                 Googleドライブのフローを開く
               </h3>
               <button
@@ -108,7 +108,7 @@ export default function GoogleDriveMenu() {
                     <button
                       type="button"
                       onClick={() => handlePick(f)}
-                      className="w-full rounded-xl px-2 py-1.5 text-left text-sm text-neutral-700 hover:bg-sky-50 dark:text-neutral-200 dark:hover:bg-sky-900/30"
+                      className="w-full rounded-xl px-2 py-1.5 text-left text-sm text-neutral-700 hover:bg-sky-50"
                     >
                       <div className="truncate font-medium">{f.name}</div>
                       <div className="text-xs text-neutral-400">

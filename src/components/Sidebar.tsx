@@ -12,7 +12,7 @@ export default function Sidebar() {
   const [draftName, setDraftName] = useState('')
 
   return (
-    <div className="flex h-full w-56 flex-col bg-neutral-50 dark:bg-neutral-900">
+    <div className="flex h-full w-56 flex-col bg-neutral-50">
       <div className="flex items-center justify-between p-4">
         <span className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
           フロー一覧
@@ -33,8 +33,8 @@ export default function Sidebar() {
             onClick={() => setActiveId(d.id)}
             className={`group mb-1 flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-sm transition-colors ${
               d.id === activeId
-                ? 'bg-white text-sky-600 shadow-sm dark:bg-neutral-800 dark:text-sky-300'
-                : 'text-neutral-500 hover:bg-white/60 dark:text-neutral-400 dark:hover:bg-neutral-800/60'
+                ? 'bg-white text-sky-600 shadow-sm'
+                : 'text-neutral-500 hover:bg-white/60'
             }`}
           >
             {editingId === d.id ? (
@@ -50,7 +50,7 @@ export default function Sidebar() {
                   if (e.key === 'Enter') e.currentTarget.blur()
                 }}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full rounded-lg bg-white px-1.5 py-0.5 text-sm outline-none ring-1 ring-sky-400 dark:bg-neutral-800"
+                className="w-full rounded-lg bg-white px-1.5 py-0.5 text-sm outline-none ring-1 ring-sky-400"
               />
             ) : (
               <span

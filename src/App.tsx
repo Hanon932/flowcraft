@@ -5,7 +5,7 @@ import Toolbar from './components/Toolbar'
 
 function App() {
   return (
-    <div className="flex h-screen w-screen bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100">
+    <div className="flex h-screen w-screen bg-white text-neutral-900">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Toolbar />
@@ -13,7 +13,7 @@ function App() {
           <div className="min-w-0 flex-1">
             <FlowCanvas />
           </div>
-          <div className="w-80 shrink-0 border-l border-neutral-100 dark:border-neutral-800">
+          <div className="w-80 shrink-0 border-l border-neutral-100">
             <ManualPanel />
           </div>
         </div>
