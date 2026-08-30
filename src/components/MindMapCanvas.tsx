@@ -3,11 +3,11 @@ import ReactFlow, { type Node, type NodeTypes } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { useFlowStore } from '../store'
 import ExportImagePanel from './ExportImagePanel'
-import StepNode from './StepNode'
+import TopicNode from './TopicNode'
 
-const nodeTypes: NodeTypes = { step: StepNode }
+const nodeTypes: NodeTypes = { topic: TopicNode }
 
-export default function FlowCanvas() {
+export default function MindMapCanvas() {
   const doc = useFlowStore((s) => s.activeDoc())
   const mode = useFlowStore((s) => s.mode)
   const selectedNodeId = useFlowStore((s) => s.selectedNodeId)
@@ -35,7 +35,6 @@ export default function FlowCanvas() {
         elementsSelectable
         onNodeClick={(_, node) => setSelectedNodeId(node.id)}
         onPaneClick={() => setSelectedNodeId(null)}
-        defaultEdgeOptions={{ style: { stroke: '#93c5fd', strokeWidth: 1.5 } }}
         fitView
       >
         <ExportImagePanel nodes={nodes} fileBaseName={doc.name} />

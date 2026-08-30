@@ -1,5 +1,11 @@
 import { useState } from 'react'
 import { useFlowStore } from '../store'
+import type { DocKind } from '../types'
+
+const TABS: { key: DocKind; label: string }[] = [
+  { key: 'flowchart', label: 'フローチャート' },
+  { key: 'mindmap', label: 'マインドマップ' },
+]
 
 export default function Sidebar() {
   const docs = useFlowStore((s) => s.docs)
@@ -10,24 +16,45 @@ export default function Sidebar() {
   const deleteFlow = useFlowStore((s) => s.deleteFlow)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draftName, setDraftName] = useState('')
+  const [section, setSection] = useState<DocKind>('flowchart')
+
+  const visibleDocs = docs.filter((d) => (d.kind ?? 'flowchart') === section)
 
   return (
     <div className="flex h-full w-56 flex-col bg-neutral-50">
-      <div className="flex items-center justify-between p-4">
+      <div className="flex gap-1 p-2">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setSection(t.key)}
+            className={`flex-1 rounded-full px-2 py-1.5 text-xs font-medium transition-colors ${
+              section === t.key
+                ? 'bg-white text-sky-600 shadow-sm'
+                : 'text-neutral-400 hover:text-neutral-600'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-between px-4 pb-2 pt-1">
         <span className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
-          フロー一覧
+          一覧
         </span>
         <button
           type="button"
-          onClick={createFlow}
-          title="新しいフローを作成"
+          onClick={() => createFlow(section)}
+          title="新規作成"
           className="flex h-6 w-6 items-center justify-center rounded-full bg-sky-500 text-sm font-bold text-white shadow-sm shadow-sky-200 hover:bg-sky-600"
         >
           +
         </button>
       </div>
+
       <div className="flex-1 overflow-y-auto px-2 pb-2">
-        {docs.map((d) => (
+        {visibleDocs.map((d) => (
           <div
             key={d.id}
             onClick={() => setActiveId(d.id)}
@@ -77,6 +104,11 @@ export default function Sidebar() {
             </button>
           </div>
         ))}
+        {visibleDocs.length === 0 && (
+          <p className="px-2 py-4 text-center text-xs text-neutral-300">
+            まだありません。「+」から作成できます。
+          </p>
+        )}
       </div>
     </div>
   )

@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { useFlowStore } from '../store'
+import type { StepNode } from '../types'
 
 export default function ManualPanel() {
   const mode = useFlowStore((s) => s.mode)
-  const node = useFlowStore((s) => s.selectedNode())
+  const node = useFlowStore((s) => s.selectedNode()) as StepNode | undefined
   const updateStep = useFlowStore((s) => s.updateStep)
   const deleteStep = useFlowStore((s) => s.deleteStep)
   const setSelectedNodeId = useFlowStore((s) => s.setSelectedNodeId)

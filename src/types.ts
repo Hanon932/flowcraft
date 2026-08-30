@@ -11,10 +11,24 @@ export interface StepData {
 
 export type StepNode = Node<StepData>
 
+export type DocKind = 'flowchart' | 'mindmap'
+
+export interface MindMapNodeData {
+  text: string
+  color?: string
+  root?: boolean
+  [key: string]: unknown
+}
+
+export type MindMapNode = Node<MindMapNodeData>
+
+export type AnyStepNode = StepNode | MindMapNode
+
 export interface FlowDoc {
   id: string
   name: string
-  nodes: StepNode[]
+  kind?: DocKind
+  nodes: AnyStepNode[]
   edges: Edge[]
   updatedAt: number
   driveFileId?: string

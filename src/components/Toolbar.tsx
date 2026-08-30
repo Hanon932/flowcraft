@@ -50,7 +50,7 @@ export default function Toolbar() {
       />
 
       <div className="flex items-center gap-1.5">
-        {mode === 'edit' && (
+        {mode === 'edit' && (doc.kind ?? 'flowchart') === 'flowchart' && (
           <button
             type="button"
             onClick={addStep}
