@@ -45,3 +45,11 @@ export interface FlowDoc {
   updatedAt: number
   driveFileId?: string
 }
+
+export interface ReflectionEntry {
+  id: string
+  date: string
+  problem: string
+  improvement: string
+  updatedAt: number
+}

@@ -19,7 +19,15 @@ import {
   recomputeEdgeHandles,
 } from './lib/mindmapLayout'
 import { BRANCH_COLORS } from './lib/palette'
-import type { AnyStepNode, DocKind, FlowDoc, FreeShape, MindMapNodeData, StepData } from './types'
+import type {
+  AnyStepNode,
+  DocKind,
+  FlowDoc,
+  FreeShape,
+  MindMapNodeData,
+  ReflectionEntry,
+  StepData,
+} from './types'
 
 const FREE_SHAPE_SIZE: Record<FreeShape, { width: number; height: number }> = {
   rectangle: { width: 160, height: 90 },
@@ -447,5 +455,58 @@ export const useFlowStore = create<FlowStore>()(
       },
     }),
     { name: 'flowcraft-storage' },
+  ),
+)
+
+export type UiSection = DocKind | 'reflection'
+
+interface UiStore {
+  section: UiSection
+  setSection: (section: UiSection) => void
+}
+
+export const useUiStore = create<UiStore>((set) => ({
+  section: 'flowchart',
+  setSection: (section) => set({ section }),
+}))
+
+interface ReflectionStore {
+  entries: ReflectionEntry[]
+  getEntry: (date: string) => ReflectionEntry | undefined
+  upsertEntry: (date: string, patch: Partial<Pick<ReflectionEntry, 'problem' | 'improvement'>>) => void
+  deleteEntry: (id: string) => void
+}
+
+export const useReflectionStore = create<ReflectionStore>()(
+  persist(
+    (set, get) => ({
+      entries: [],
+      getEntry: (date) => get().entries.find((e) => e.date === date),
+      upsertEntry: (date, patch) => {
+        set((s) => {
+          const existing = s.entries.find((e) => e.date === date)
+          if (existing) {
+            return {
+              entries: s.entries.map((e) =>
+                e.id === existing.id ? { ...e, ...patch, updatedAt: Date.now() } : e,
+              ),
+            }
+          }
+          const entry: ReflectionEntry = {
+            id: nanoid(8),
+            date,
+            problem: '',
+            improvement: '',
+            ...patch,
+            updatedAt: Date.now(),
+          }
+          return { entries: [...s.entries, entry] }
+        })
+      },
+      deleteEntry: (id) => {
+        set((s) => ({ entries: s.entries.filter((e) => e.id !== id) }))
+      },
+    }),
+    { name: 'flowcraft-reflections' },
   ),
 )
