@@ -5,6 +5,7 @@ import type { DocKind } from '../types'
 const TABS: { key: DocKind; label: string }[] = [
   { key: 'flowchart', label: 'フローチャート' },
   { key: 'mindmap', label: 'マインドマップ' },
+  { key: 'freeform', label: 'ホワイトボード' },
 ]
 
 export default function Sidebar() {
@@ -21,14 +22,14 @@ export default function Sidebar() {
   const visibleDocs = docs.filter((d) => (d.kind ?? 'flowchart') === section)
 
   return (
-    <div className="flex h-full w-56 flex-col bg-neutral-50">
-      <div className="flex gap-1 p-2">
+    <div className="flex h-full w-64 flex-col bg-neutral-50">
+      <div className="flex flex-col gap-1 p-2">
         {TABS.map((t) => (
           <button
             key={t.key}
             type="button"
             onClick={() => setSection(t.key)}
-            className={`flex-1 rounded-full px-2 py-1.5 text-xs font-medium transition-colors ${
+            className={`rounded-full px-3 py-1.5 text-left text-xs font-medium transition-colors ${
               section === t.key
                 ? 'bg-white text-sky-600 shadow-sm'
                 : 'text-neutral-400 hover:text-neutral-600'

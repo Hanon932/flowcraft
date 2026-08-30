@@ -11,7 +11,7 @@ export interface StepData {
 
 export type StepNode = Node<StepData>
 
-export type DocKind = 'flowchart' | 'mindmap'
+export type DocKind = 'flowchart' | 'mindmap' | 'freeform'
 
 export interface MindMapNodeData {
   text: string
@@ -22,7 +22,18 @@ export interface MindMapNodeData {
 
 export type MindMapNode = Node<MindMapNodeData>
 
-export type AnyStepNode = StepNode | MindMapNode
+export type FreeShape = 'rectangle' | 'oval' | 'diamond' | 'parallelogram'
+
+export interface FreeShapeData {
+  text: string
+  shape: FreeShape
+  color?: string
+  [key: string]: unknown
+}
+
+export type FreeShapeNode = Node<FreeShapeData>
+
+export type AnyStepNode = StepNode | MindMapNode | FreeShapeNode
 
 export interface FlowDoc {
   id: string

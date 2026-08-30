@@ -1,4 +1,5 @@
 import FlowCanvas from './components/FlowCanvas'
+import FreeCanvas from './components/FreeCanvas'
 import ManualPanel from './components/ManualPanel'
 import MindMapCanvas from './components/MindMapCanvas'
 import Sidebar from './components/Sidebar'
@@ -15,7 +16,13 @@ function App() {
         <Toolbar />
         <div className="flex min-h-0 flex-1">
           <div className="min-w-0 flex-1">
-            {kind === 'mindmap' ? <MindMapCanvas /> : <FlowCanvas />}
+            {kind === 'mindmap' ? (
+              <MindMapCanvas />
+            ) : kind === 'freeform' ? (
+              <FreeCanvas />
+            ) : (
+              <FlowCanvas />
+            )}
           </div>
           {kind === 'flowchart' && (
             <div className="w-80 shrink-0 border-l border-neutral-100">
