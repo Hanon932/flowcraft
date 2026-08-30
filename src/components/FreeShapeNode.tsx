@@ -1,9 +1,10 @@
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { Handle, NodeResizer, Position, type NodeProps } from 'reactflow'
 import { BRANCH_COLORS } from '../lib/palette'
 import { useClickOutside } from '../lib/useClickOutside'
 import { useFlowStore } from '../store'
 import type { FreeShape, FreeShapeData } from '../types'
+import FloatingMenu from './FloatingMenu'
 
 const SHAPE_LABELS: Record<FreeShape, string> = {
   rectangle: '四角形',
@@ -48,8 +49,12 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
   const [editing, setEditing] = useState(false)
   const [shapeMenuOpen, setShapeMenuOpen] = useState(false)
   const [colorMenuOpen, setColorMenuOpen] = useState(false)
-  const shapeMenuRef = useClickOutside<HTMLDivElement>(shapeMenuOpen, () => setShapeMenuOpen(false))
-  const colorMenuRef = useClickOutside<HTMLDivElement>(colorMenuOpen, () => setColorMenuOpen(false))
+  const shapeButtonRef = useRef<HTMLButtonElement>(null)
+  const shapeMenuRef = useRef<HTMLDivElement>(null)
+  const colorButtonRef = useRef<HTMLButtonElement>(null)
+  const colorMenuRef = useRef<HTMLDivElement>(null)
+  useClickOutside(shapeMenuOpen, () => setShapeMenuOpen(false), [shapeButtonRef, shapeMenuRef])
+  useClickOutside(colorMenuOpen, () => setColorMenuOpen(false), [colorButtonRef, colorMenuRef])
   const isEdit = mode === 'edit'
   const shape = data.shape
   const color = data.color ?? '#0ea5e9'
@@ -122,8 +127,9 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
 
       {isEdit && (
         <>
-          <div ref={shapeMenuRef} className="absolute -left-2 -top-2 z-10">
+          <div className="absolute -left-2 -top-2 z-10">
             <button
+              ref={shapeButtonRef}
               type="button"
               title="図形の種類を変更"
               onClick={(e) => {
@@ -135,31 +141,35 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
             >
               ⬡
             </button>
-            {shapeMenuOpen && (
-              <div className="absolute left-0 top-7 z-20 w-36 rounded-xl bg-white p-1 shadow-lg ring-1 ring-neutral-200">
-                {(Object.keys(SHAPE_LABELS) as FreeShape[]).map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      updateStep(id, { shape: s })
-                      setShapeMenuOpen(false)
-                    }}
-                    className={`flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left text-xs hover:bg-sky-50 ${
-                      shape === s ? 'text-sky-600' : 'text-neutral-500'
-                    }`}
-                  >
-                    <span>{SHAPE_ICONS[s]}</span>
-                    <span>{SHAPE_LABELS[s]}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+            <FloatingMenu
+              ref={shapeMenuRef}
+              anchorRef={shapeButtonRef}
+              open={shapeMenuOpen}
+              className="w-36 rounded-xl bg-white p-1 shadow-lg ring-1 ring-neutral-200"
+            >
+              {(Object.keys(SHAPE_LABELS) as FreeShape[]).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    updateStep(id, { shape: s })
+                    setShapeMenuOpen(false)
+                  }}
+                  className={`flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left text-xs hover:bg-sky-50 ${
+                    shape === s ? 'text-sky-600' : 'text-neutral-500'
+                  }`}
+                >
+                  <span>{SHAPE_ICONS[s]}</span>
+                  <span>{SHAPE_LABELS[s]}</span>
+                </button>
+              ))}
+            </FloatingMenu>
           </div>
 
-          <div ref={colorMenuRef} className="absolute -right-2 -top-2 z-10">
+          <div className="absolute -right-2 -top-2 z-10">
             <button
+              ref={colorButtonRef}
               type="button"
               title="色を変更"
               onClick={(e) => {
@@ -171,23 +181,27 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
             >
               <span className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
             </button>
-            {colorMenuOpen && (
-              <div className="absolute right-0 top-7 z-20 grid w-32 grid-cols-4 gap-1 rounded-xl bg-white p-2 shadow-lg ring-1 ring-neutral-200">
-                {BRANCH_COLORS.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      updateStep(id, { color: c })
-                      setColorMenuOpen(false)
-                    }}
-                    className="h-5 w-5 rounded-full ring-1 ring-neutral-200"
-                    style={{ backgroundColor: c }}
-                  />
-                ))}
-              </div>
-            )}
+            <FloatingMenu
+              ref={colorMenuRef}
+              anchorRef={colorButtonRef}
+              open={colorMenuOpen}
+              align="right"
+              className="grid w-32 grid-cols-4 gap-1 rounded-xl bg-white p-2 shadow-lg ring-1 ring-neutral-200"
+            >
+              {BRANCH_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    updateStep(id, { color: c })
+                    setColorMenuOpen(false)
+                  }}
+                  className="h-5 w-5 rounded-full ring-1 ring-neutral-200"
+                  style={{ backgroundColor: c }}
+                />
+              ))}
+            </FloatingMenu>
           </div>
 
           <button

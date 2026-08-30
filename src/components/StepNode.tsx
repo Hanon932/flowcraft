@@ -1,5 +1,6 @@
-import { memo, useState } from 'react'
+import { memo, useRef, useState } from 'react'
 import { Handle, Position, type NodeProps } from 'reactflow'
+import FloatingMenu from './FloatingMenu'
 import { useClickOutside } from '../lib/useClickOutside'
 import { useFlowStore } from '../store'
 import type { StepData, StepShape } from '../types'
@@ -49,7 +50,9 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
   const addConnectedStep = useFlowStore((s) => s.addConnectedStep)
   const updateStep = useFlowStore((s) => s.updateStep)
   const [shapeMenuOpen, setShapeMenuOpen] = useState(false)
-  const shapeMenuRef = useClickOutside<HTMLDivElement>(shapeMenuOpen, () => setShapeMenuOpen(false))
+  const shapeButtonRef = useRef<HTMLButtonElement>(null)
+  const shapeMenuRef = useRef<HTMLDivElement>(null)
+  useClickOutside(shapeMenuOpen, () => setShapeMenuOpen(false), [shapeButtonRef, shapeMenuRef])
   const shape = data.shape ?? 'rectangle'
   const isEdit = mode === 'edit'
   const polygonPoints = SHAPE_POLYGON_POINTS[shape]
@@ -120,8 +123,9 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
       {isEdit && (
         <>
           {/* 図形切替ボタン */}
-          <div ref={shapeMenuRef} className="absolute -left-2 -top-2 z-10">
+          <div className="absolute -left-2 -top-2 z-10">
             <button
+              ref={shapeButtonRef}
               type="button"
               title="図形の種類を変更"
               onClick={(e) => {
@@ -132,29 +136,30 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
             >
               ⬡
             </button>
-            {shapeMenuOpen && (
-              <div className="absolute left-0 top-7 z-20 w-40 rounded-xl bg-white p-1 shadow-lg ring-1 ring-neutral-200">
-                {(Object.keys(SHAPE_LABELS) as StepShape[]).map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      updateStep(id, { shape: s })
-                      setShapeMenuOpen(false)
-                    }}
-                    className={`flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left text-xs hover:bg-sky-50 ${
-                      shape === s
-                        ? 'text-sky-600'
-                        : 'text-neutral-500'
-                    }`}
-                  >
-                    <span>{SHAPE_ICONS[s]}</span>
-                    <span>{SHAPE_LABELS[s]}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+            <FloatingMenu
+              ref={shapeMenuRef}
+              anchorRef={shapeButtonRef}
+              open={shapeMenuOpen}
+              className="w-40 rounded-xl bg-white p-1 shadow-lg ring-1 ring-neutral-200"
+            >
+              {(Object.keys(SHAPE_LABELS) as StepShape[]).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    updateStep(id, { shape: s })
+                    setShapeMenuOpen(false)
+                  }}
+                  className={`flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left text-xs hover:bg-sky-50 ${
+                    shape === s ? 'text-sky-600' : 'text-neutral-500'
+                  }`}
+                >
+                  <span>{SHAPE_ICONS[s]}</span>
+                  <span>{SHAPE_LABELS[s]}</span>
+                </button>
+              ))}
+            </FloatingMenu>
           </div>
 
           {/* 下に次のステップを追加するボタン */}
