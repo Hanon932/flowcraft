@@ -13,7 +13,7 @@ function App() {
           <div className="min-w-0 flex-1">
             <FlowCanvas />
           </div>
-          <div className="w-80 shrink-0 border-l border-neutral-200 dark:border-neutral-700">
+          <div className="w-80 shrink-0 border-l border-neutral-100 dark:border-neutral-800">
             <ManualPanel />
           </div>
         </div>

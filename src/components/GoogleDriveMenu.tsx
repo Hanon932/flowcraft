@@ -62,27 +62,27 @@ export default function GoogleDriveMenu() {
       <button
         type="button"
         onClick={handleSave}
-        className="rounded border border-neutral-300 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-100 dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
       >
         Driveに保存
       </button>
       <button
         type="button"
         onClick={handleOpenPicker}
-        className="rounded border border-neutral-300 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-100 dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800"
+        className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
       >
         Driveから開く
       </button>
 
       {status && (
-        <div className="absolute right-0 top-full z-20 mt-1 whitespace-nowrap rounded bg-neutral-800/90 px-2 py-1 text-xs text-white">
+        <div className="absolute right-0 top-full z-20 mt-1 whitespace-nowrap rounded-full bg-neutral-800/90 px-3 py-1 text-xs text-white shadow-md">
           {status}
         </div>
       )}
 
       {pickerOpen && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
-          <div className="max-h-[70vh] w-96 overflow-y-auto rounded-lg bg-white p-4 shadow-lg dark:bg-neutral-800">
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-neutral-900/30 backdrop-blur-sm">
+          <div className="max-h-[70vh] w-96 overflow-y-auto rounded-2xl bg-white p-4 shadow-xl dark:bg-neutral-800">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
                 Googleドライブのフローを開く
@@ -90,7 +90,7 @@ export default function GoogleDriveMenu() {
               <button
                 type="button"
                 onClick={() => setPickerOpen(false)}
-                className="text-neutral-400 hover:text-neutral-600"
+                className="flex h-6 w-6 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
               >
                 ×
               </button>
@@ -108,7 +108,7 @@ export default function GoogleDriveMenu() {
                     <button
                       type="button"
                       onClick={() => handlePick(f)}
-                      className="w-full rounded px-2 py-1.5 text-left text-sm text-neutral-700 hover:bg-violet-50 dark:text-neutral-200 dark:hover:bg-violet-900/30"
+                      className="w-full rounded-xl px-2 py-1.5 text-left text-sm text-neutral-700 hover:bg-sky-50 dark:text-neutral-200 dark:hover:bg-sky-900/30"
                     >
                       <div className="truncate font-medium">{f.name}</div>
                       <div className="text-xs text-neutral-400">

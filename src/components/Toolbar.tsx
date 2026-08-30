@@ -41,33 +41,33 @@ export default function Toolbar() {
   }
 
   return (
-    <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-2 dark:border-neutral-700">
+    <div className="flex items-center justify-between border-b border-neutral-100 bg-white px-5 py-2.5 dark:border-neutral-800 dark:bg-neutral-900">
       <input
         value={doc.name}
         onChange={(e) => renameFlow(doc.id, e.target.value)}
         disabled={mode !== 'edit'}
-        className="w-56 rounded px-2 py-1 text-sm font-semibold outline-none focus:bg-neutral-100 disabled:bg-transparent dark:focus:bg-neutral-800"
+        className="w-56 rounded-lg px-2 py-1 text-sm font-semibold text-neutral-800 outline-none focus:bg-sky-50 disabled:bg-transparent dark:text-neutral-100 dark:focus:bg-neutral-800"
       />
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         {mode === 'edit' && (
           <button
             type="button"
             onClick={addStep}
-            className="rounded bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-700"
+            className="rounded-full bg-sky-500 px-4 py-1.5 text-xs font-medium text-white shadow-sm shadow-sky-200 hover:bg-sky-600"
           >
             ＋ ステップ追加
           </button>
         )}
 
-        <div className="flex overflow-hidden rounded border border-neutral-300 text-xs dark:border-neutral-600">
+        <div className="flex rounded-full bg-neutral-100 p-0.5 text-xs dark:bg-neutral-800">
           <button
             type="button"
             onClick={() => setMode('edit')}
-            className={`px-3 py-1.5 ${
+            className={`rounded-full px-3 py-1 transition-colors ${
               mode === 'edit'
-                ? 'bg-violet-600 text-white'
-                : 'bg-white text-neutral-500 dark:bg-neutral-800'
+                ? 'bg-white text-sky-600 shadow-sm dark:bg-neutral-700'
+                : 'text-neutral-400 hover:text-neutral-600'
             }`}
           >
             編集
@@ -75,29 +75,31 @@ export default function Toolbar() {
           <button
             type="button"
             onClick={() => setMode('view')}
-            className={`px-3 py-1.5 ${
+            className={`rounded-full px-3 py-1 transition-colors ${
               mode === 'view'
-                ? 'bg-violet-600 text-white'
-                : 'bg-white text-neutral-500 dark:bg-neutral-800'
+                ? 'bg-white text-sky-600 shadow-sm dark:bg-neutral-700'
+                : 'text-neutral-400 hover:text-neutral-600'
             }`}
           >
             閲覧
           </button>
         </div>
 
+        <div className="mx-1 h-5 w-px bg-neutral-200 dark:bg-neutral-700" />
+
         <GoogleDriveMenu />
 
         <button
           type="button"
           onClick={handleExport}
-          className="rounded border border-neutral-300 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-100 dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800"
+          className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
         >
           エクスポート
         </button>
         <button
           type="button"
           onClick={handleImportClick}
-          className="rounded border border-neutral-300 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-100 dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-800"
+          className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
         >
           インポート
         </button>

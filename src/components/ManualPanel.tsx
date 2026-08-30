@@ -12,7 +12,7 @@ export default function ManualPanel() {
 
   if (!node) {
     return (
-      <div className="flex h-full items-center justify-center p-6 text-center text-sm text-neutral-400">
+      <div className="flex h-full items-center justify-center p-6 text-center text-sm text-neutral-300">
         図形をクリックすると、
         <br />
         ステップのマニュアルがここに表示されます。
@@ -23,15 +23,15 @@ export default function ManualPanel() {
   const isEdit = mode === 'edit'
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-neutral-200 p-3 dark:border-neutral-700">
+    <div className="flex h-full flex-col bg-white dark:bg-neutral-900">
+      <div className="flex items-center justify-between border-b border-neutral-100 p-3 dark:border-neutral-800">
         <span className="text-xs font-medium text-neutral-400">ステップの詳細</span>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {isEdit && (
             <button
               type="button"
               onClick={() => deleteStep(node.id)}
-              className="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
+              className="rounded-full px-2.5 py-1 text-xs text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
             >
               削除
             </button>
@@ -39,9 +39,9 @@ export default function ManualPanel() {
           <button
             type="button"
             onClick={() => setSelectedNodeId(null)}
-            className="rounded px-2 py-1 text-xs text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            className="flex h-6 w-6 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700"
           >
-            閉じる
+            ×
           </button>
         </div>
       </div>
@@ -52,7 +52,7 @@ export default function ManualPanel() {
             value={node.data.title}
             onChange={(e) => updateStep(node.id, { title: e.target.value })}
             placeholder="ステップ名"
-            className="w-full rounded border border-neutral-300 px-2 py-1.5 text-sm font-semibold outline-none focus:border-violet-500 dark:border-neutral-600 dark:bg-neutral-800"
+            className="w-full rounded-xl bg-neutral-100 px-3 py-2 text-sm font-semibold outline-none ring-1 ring-transparent focus:bg-white focus:ring-sky-400 dark:bg-neutral-800 dark:focus:bg-neutral-800"
           />
         ) : (
           <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
@@ -66,9 +66,9 @@ export default function ManualPanel() {
           <button
             type="button"
             onClick={() => setTab('edit')}
-            className={`rounded-t px-3 py-1 text-xs ${
+            className={`rounded-full px-3 py-1 text-xs transition-colors ${
               tab === 'edit'
-                ? 'bg-violet-100 font-medium text-violet-700 dark:bg-violet-900/40 dark:text-violet-300'
+                ? 'bg-sky-100 font-medium text-sky-600 dark:bg-sky-900/40 dark:text-sky-300'
                 : 'text-neutral-400 hover:text-neutral-600'
             }`}
           >
@@ -77,9 +77,9 @@ export default function ManualPanel() {
           <button
             type="button"
             onClick={() => setTab('preview')}
-            className={`rounded-t px-3 py-1 text-xs ${
+            className={`rounded-full px-3 py-1 text-xs transition-colors ${
               tab === 'preview'
-                ? 'bg-violet-100 font-medium text-violet-700 dark:bg-violet-900/40 dark:text-violet-300'
+                ? 'bg-sky-100 font-medium text-sky-600 dark:bg-sky-900/40 dark:text-sky-300'
                 : 'text-neutral-400 hover:text-neutral-600'
             }`}
           >
@@ -94,14 +94,14 @@ export default function ManualPanel() {
             value={node.data.manual}
             onChange={(e) => updateStep(node.id, { manual: e.target.value })}
             placeholder={'このステップの手順をMarkdownで書けます。\n\n例:\n1. ボタンを押す\n2. 内容を確認する'}
-            className="h-full w-full resize-none rounded border border-neutral-300 p-2 font-mono text-xs leading-relaxed outline-none focus:border-violet-500 dark:border-neutral-600 dark:bg-neutral-800"
+            className="h-full w-full resize-none rounded-xl bg-neutral-100 p-3 font-mono text-xs leading-relaxed outline-none ring-1 ring-transparent focus:bg-white focus:ring-sky-400 dark:bg-neutral-800"
           />
         ) : node.data.manual ? (
           <div className="prose prose-sm max-w-none dark:prose-invert">
             <ReactMarkdown>{node.data.manual}</ReactMarkdown>
           </div>
         ) : (
-          <p className="text-sm italic text-neutral-400">まだマニュアルが書かれていません。</p>
+          <p className="text-sm italic text-neutral-300">まだマニュアルが書かれていません。</p>
         )}
       </div>
     </div>

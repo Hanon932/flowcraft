@@ -18,15 +18,15 @@ const SHAPE_ICONS: Record<StepShape, string> = {
 }
 
 const SHAPE_BOX_CLASS: Record<StepShape, string> = {
-  rectangle: 'min-w-[160px] max-w-[220px] rounded-lg border-2 bg-white shadow-sm dark:bg-neutral-800',
+  rectangle: 'min-w-[160px] max-w-[220px] rounded-2xl border-2 bg-white shadow-sm dark:bg-neutral-800',
   oval: 'min-w-[160px] max-w-[220px] rounded-full border-2 bg-white shadow-sm dark:bg-neutral-800',
   diamond: 'min-w-[200px] max-w-[240px] min-h-[130px]',
   parallelogram: 'min-w-[180px] max-w-[240px] min-h-[70px]',
 }
 
 const SHAPE_BORDER_CLASS = {
-  selected: 'border-violet-500 shadow-violet-200 dark:shadow-none',
-  idle: 'border-neutral-300 dark:border-neutral-600',
+  selected: 'border-sky-500 shadow-sky-200 dark:shadow-none',
+  idle: 'border-neutral-200 dark:border-neutral-600',
 }
 
 const SHAPE_POLYGON_POINTS: Partial<Record<StepShape, string>> = {
@@ -40,6 +40,8 @@ const SHAPE_CONTENT_PADDING: Record<StepShape, string> = {
   diamond: 'px-14 py-10',
   parallelogram: 'px-9 py-3',
 }
+
+const handleClass = '!h-2.5 !w-2.5 !border-2 !border-white !bg-sky-500 dark:!border-neutral-800'
 
 function StepNode({ id, data, selected }: NodeProps<StepData>) {
   const mode = useFlowStore((s) => s.mode)
@@ -68,30 +70,49 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
               vectorEffect="non-scaling-stroke"
               strokeWidth={2}
               className={`fill-white dark:fill-neutral-800 ${
-                selected
-                  ? 'stroke-violet-500'
-                  : 'stroke-neutral-300 dark:stroke-neutral-600'
+                selected ? 'stroke-sky-500' : 'stroke-neutral-200 dark:stroke-neutral-600'
               }`}
             />
           </svg>
         )}
 
-        <Handle type="target" position={Position.Top} className="!z-10 !bg-violet-500" />
+        <Handle type="target" position={Position.Top} className={`!z-10 ${handleClass}`} />
+
+        {shape === 'diamond' && (
+          <>
+            <Handle
+              type="source"
+              position={Position.Left}
+              id="left"
+              isConnectableStart
+              isConnectableEnd
+              className={`!z-10 ${handleClass}`}
+            />
+            <Handle
+              type="source"
+              position={Position.Right}
+              id="right"
+              isConnectableStart
+              isConnectableEnd
+              className={`!z-10 ${handleClass}`}
+            />
+          </>
+        )}
 
         <div className={`relative z-10 ${SHAPE_CONTENT_PADDING[shape]}`}>
           <div className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
             {data.title || '(無題のステップ)'}
           </div>
           {data.manual ? (
-            <div className="mt-1 line-clamp-2 text-xs text-neutral-500 dark:text-neutral-400">
+            <div className="mt-1 line-clamp-2 text-xs text-neutral-400 dark:text-neutral-400">
               {data.manual}
             </div>
           ) : (
-            <div className="mt-1 text-xs italic text-neutral-400">マニュアル未設定</div>
+            <div className="mt-1 text-xs italic text-neutral-300">マニュアル未設定</div>
           )}
         </div>
 
-        <Handle type="source" position={Position.Bottom} className="!z-10 !bg-violet-500" />
+        <Handle type="source" position={Position.Bottom} className={`!z-10 ${handleClass}`} />
       </div>
 
       {isEdit && (
@@ -105,12 +126,12 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
                 e.stopPropagation()
                 setShapeMenuOpen((v) => !v)
               }}
-              className="flex h-6 w-6 items-center justify-center rounded-full border border-neutral-300 bg-white text-xs text-neutral-500 opacity-0 shadow-sm transition-opacity hover:bg-neutral-100 group-hover:opacity-100 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-300"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs text-neutral-400 opacity-0 shadow-md ring-1 ring-neutral-200 transition-opacity hover:text-sky-500 group-hover:opacity-100 dark:bg-neutral-700 dark:text-neutral-300 dark:ring-neutral-600"
             >
               ⬡
             </button>
             {shapeMenuOpen && (
-              <div className="absolute left-0 top-7 z-20 w-40 rounded border border-neutral-200 bg-white p-1 shadow-lg dark:border-neutral-600 dark:bg-neutral-800">
+              <div className="absolute left-0 top-7 z-20 w-40 rounded-xl bg-white p-1 shadow-lg ring-1 ring-neutral-200 dark:bg-neutral-800 dark:ring-neutral-600">
                 {(Object.keys(SHAPE_LABELS) as StepShape[]).map((s) => (
                   <button
                     key={s}
@@ -120,10 +141,10 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
                       updateStep(id, { shape: s })
                       setShapeMenuOpen(false)
                     }}
-                    className={`flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs hover:bg-violet-50 dark:hover:bg-violet-900/30 ${
+                    className={`flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left text-xs hover:bg-sky-50 dark:hover:bg-sky-900/30 ${
                       shape === s
-                        ? 'text-violet-600 dark:text-violet-300'
-                        : 'text-neutral-600 dark:text-neutral-300'
+                        ? 'text-sky-600 dark:text-sky-300'
+                        : 'text-neutral-500 dark:text-neutral-300'
                     }`}
                   >
                     <span>{SHAPE_ICONS[s]}</span>
@@ -142,7 +163,7 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
               e.stopPropagation()
               addConnectedStep(id)
             }}
-            className="absolute left-1/2 top-full z-10 flex h-6 w-6 -translate-x-1/2 translate-y-2 items-center justify-center rounded-full border border-violet-400 bg-white text-sm font-bold text-violet-500 opacity-0 shadow-sm transition-opacity hover:bg-violet-50 group-hover:opacity-100 dark:bg-neutral-700"
+            className="absolute left-1/2 top-full z-10 flex h-6 w-6 -translate-x-1/2 translate-y-2 items-center justify-center rounded-full bg-sky-500 text-sm font-bold text-white opacity-0 shadow-md transition-opacity hover:bg-sky-600 group-hover:opacity-100"
           >
             +
           </button>

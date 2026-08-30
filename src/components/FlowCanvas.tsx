@@ -58,7 +58,7 @@ export default function FlowCanvas() {
   }
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full bg-neutral-50 dark:bg-neutral-950">
       <ReactFlow
         nodes={nodes}
         edges={doc.edges}
@@ -71,18 +71,24 @@ export default function FlowCanvas() {
         elementsSelectable
         onNodeClick={(_, node) => setSelectedNodeId(node.id)}
         onPaneClick={() => setSelectedNodeId(null)}
+        defaultEdgeOptions={{ style: { stroke: '#93c5fd', strokeWidth: 1.5 } }}
         fitView
       >
-        <Background gap={16} />
-        <Controls />
-        <MiniMap pannable zoomable className="!hidden sm:!block" />
-        <Panel position="top-right" className="flex flex-col items-end gap-1">
-          <div className="flex gap-1">
+        <Background gap={20} color="#dbeafe" />
+        <Controls className="!rounded-xl !shadow-md" showInteractive={false} />
+        <MiniMap
+          pannable
+          zoomable
+          className="!hidden !rounded-xl !shadow-md sm:!block"
+          maskColor="rgba(226, 232, 240, 0.6)"
+        />
+        <Panel position="top-right" className="flex flex-col items-end gap-1.5">
+          <div className="flex gap-1.5 rounded-full bg-white/90 p-1 shadow-md ring-1 ring-neutral-100 backdrop-blur dark:bg-neutral-800/90 dark:ring-neutral-700">
             <button
               type="button"
               onClick={handleCopyImage}
               title="画像としてクリップボードにコピー（Excelなどに貼り付け可）"
-              className="rounded border border-neutral-300 bg-white px-2 py-1 text-xs text-neutral-600 shadow-sm hover:bg-neutral-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-300"
+              className="rounded-full px-3 py-1 text-xs text-neutral-500 hover:bg-sky-50 hover:text-sky-600 dark:text-neutral-300"
             >
               画像をコピー
             </button>
@@ -90,13 +96,13 @@ export default function FlowCanvas() {
               type="button"
               onClick={handleDownloadImage}
               title="PNG画像として保存"
-              className="rounded border border-neutral-300 bg-white px-2 py-1 text-xs text-neutral-600 shadow-sm hover:bg-neutral-100 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-300"
+              className="rounded-full px-3 py-1 text-xs text-neutral-500 hover:bg-sky-50 hover:text-sky-600 dark:text-neutral-300"
             >
               画像を保存
             </button>
           </div>
           {imageStatus && (
-            <div className="rounded bg-neutral-800/90 px-2 py-1 text-xs text-white">
+            <div className="rounded-full bg-neutral-800/90 px-3 py-1 text-xs text-white shadow-md">
               {imageStatus}
             </div>
           )}
