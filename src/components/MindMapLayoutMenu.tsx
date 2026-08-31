@@ -16,7 +16,7 @@ export default function MindMapLayoutMenu() {
         ref={buttonRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="rounded-full px-3 py-1.5 text-xs text-slate-400 hover:bg-white/5"
+        className="rounded-full px-3 py-1.5 text-xs text-[#86868b] transition-colors duration-200 hover:bg-black/[0.03]"
       >
         整列
       </button>
@@ -24,7 +24,7 @@ export default function MindMapLayoutMenu() {
         ref={menuRef}
         anchorRef={buttonRef}
         open={open}
-        className="w-48 rounded-xl bg-slate-900 p-1 shadow-lg ring-1 ring-white/10"
+        className="w-48 rounded-xl bg-white p-1 shadow-lg ring-1 ring-[#d2d2d7]"
       >
         <button
           type="button"
@@ -32,7 +32,7 @@ export default function MindMapLayoutMenu() {
             applyMindMapLayout('radial')
             setOpen(false)
           }}
-          className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-slate-300 hover:bg-violet-500/10"
+          className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-[#1d1d1f] hover:bg-[#0071e3]/10"
         >
           <span>✺</span>
           <span>放射状に整列</span>
@@ -43,7 +43,7 @@ export default function MindMapLayoutMenu() {
             applyMindMapLayout('tree')
             setOpen(false)
           }}
-          className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-slate-300 hover:bg-violet-500/10"
+          className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-[#1d1d1f] hover:bg-[#0071e3]/10"
         >
           <span>▤</span>
           <span>ロードマップ風に整列</span>

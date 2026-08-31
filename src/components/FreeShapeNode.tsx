@@ -40,7 +40,7 @@ const SHAPE_CONTENT_PADDING: Record<FreeShape, string> = {
 }
 
 const handleClass =
-  'h-2 w-2 !border-2 !border-slate-950 !bg-violet-400 opacity-0 transition-opacity group-hover:opacity-100'
+  'h-2 w-2 !border-2 !border-white !bg-[#0071e3] opacity-0 transition-opacity group-hover:opacity-100'
 
 function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
   const mode = useFlowStore((s) => s.mode)
@@ -57,7 +57,7 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
   useClickOutside(colorMenuOpen, () => setColorMenuOpen(false), [colorButtonRef, colorMenuRef])
   const isEdit = mode === 'edit'
   const shape = data.shape
-  const color = data.color ?? '#38bdf8'
+  const color = data.color ?? '#0071e3'
   const polygonPoints = SHAPE_POLYGON_POINTS[shape]
 
   useEffect(() => {
@@ -73,8 +73,8 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
         isVisible={isEdit && Boolean(selected)}
         minWidth={80}
         minHeight={50}
-        handleStyle={{ width: 10, height: 10, borderRadius: 9999, border: '2px solid #0f172a' }}
-        lineStyle={{ borderColor: '#a78bfa' }}
+        handleStyle={{ width: 10, height: 10, borderRadius: 9999, border: '2px solid #ffffff' }}
+        lineStyle={{ borderColor: '#0071e3' }}
       />
 
       <Handle type="target" position={Position.Top} id="top" isConnectableStart isConnectableEnd className={handleClass} />
@@ -83,9 +83,9 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
       <Handle type="source" position={Position.Left} id="left" isConnectableStart isConnectableEnd className={handleClass} />
 
       <div
-        className={`relative h-full w-full bg-slate-900 shadow-sm ${SHAPE_ROUNDED_CLASS[shape]} ${
+        className={`relative h-full w-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)] ${SHAPE_ROUNDED_CLASS[shape]} ${
           polygonPoints ? '' : 'border-2'
-        } ${selected ? 'ring-2 ring-violet-400' : ''}`}
+        } ${selected ? 'ring-2 ring-[#0071e3]' : ''}`}
         style={!polygonPoints ? { borderColor: color } : undefined}
       >
         {polygonPoints && (
@@ -95,7 +95,7 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
               vectorEffect="non-scaling-stroke"
               strokeWidth={2}
               style={{ stroke: color }}
-              className={`fill-slate-900 ${selected ? '!stroke-violet-400' : ''}`}
+              className={`fill-white ${selected ? '!stroke-[#0071e3]' : ''}`}
             />
           </svg>
         )}
@@ -112,12 +112,12 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
               onKeyDown={(e) => {
                 if (e.key === 'Escape') e.currentTarget.blur()
               }}
-              className="h-full w-full resize-none bg-transparent text-center text-sm font-medium text-slate-100 outline-none"
+              className="h-full w-full resize-none bg-transparent text-center text-sm font-medium text-[#1d1d1f] outline-none"
             />
           ) : (
             <div
               onDoubleClick={() => isEdit && setEditing(true)}
-              className="w-full whitespace-pre-wrap break-words text-sm font-medium text-slate-200"
+              className="w-full whitespace-pre-wrap break-words text-sm font-medium text-[#1d1d1f]"
             >
               {data.text || 'テキスト'}
             </div>
@@ -137,7 +137,7 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
                 setShapeMenuOpen((v) => !v)
                 setColorMenuOpen(false)
               }}
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-xs text-slate-400 opacity-0 shadow-md ring-1 ring-white/10 transition-opacity hover:text-violet-300 group-hover:opacity-100"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs text-[#86868b] opacity-0 shadow-md ring-1 ring-[#d2d2d7] transition-opacity hover:text-[#0071e3] group-hover:opacity-100"
             >
               ⬡
             </button>
@@ -145,7 +145,7 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
               ref={shapeMenuRef}
               anchorRef={shapeButtonRef}
               open={shapeMenuOpen}
-              className="w-36 rounded-xl bg-slate-900 p-1 shadow-lg ring-1 ring-white/10"
+              className="w-36 rounded-xl bg-white p-1 shadow-lg ring-1 ring-[#d2d2d7]"
             >
               {(Object.keys(SHAPE_LABELS) as FreeShape[]).map((s) => (
                 <button
@@ -156,8 +156,8 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
                     updateStep(id, { shape: s })
                     setShapeMenuOpen(false)
                   }}
-                  className={`flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left text-xs hover:bg-violet-500/10 ${
-                    shape === s ? 'text-violet-300' : 'text-slate-400'
+                  className={`flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left text-xs hover:bg-[#0071e3]/10 ${
+                    shape === s ? 'text-[#0071e3]' : 'text-[#86868b]'
                   }`}
                 >
                   <span>{SHAPE_ICONS[s]}</span>
@@ -177,7 +177,7 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
                 setColorMenuOpen((v) => !v)
                 setShapeMenuOpen(false)
               }}
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 opacity-0 shadow-md ring-1 ring-white/10 transition-opacity group-hover:opacity-100"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white opacity-0 shadow-md ring-1 ring-[#d2d2d7] transition-opacity group-hover:opacity-100"
             >
               <span className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
             </button>
@@ -186,7 +186,7 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
               anchorRef={colorButtonRef}
               open={colorMenuOpen}
               align="right"
-              className="grid w-32 grid-cols-4 gap-1 rounded-xl bg-slate-900 p-2 shadow-lg ring-1 ring-white/10"
+              className="grid w-32 grid-cols-4 gap-1 rounded-xl bg-white p-2 shadow-lg ring-1 ring-[#d2d2d7]"
             >
               {BRANCH_COLORS.map((c) => (
                 <button
@@ -197,7 +197,7 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
                     updateStep(id, { color: c })
                     setColorMenuOpen(false)
                   }}
-                  className="h-5 w-5 rounded-full ring-1 ring-white/10"
+                  className="h-5 w-5 rounded-full ring-1 ring-[#d2d2d7]"
                   style={{ backgroundColor: c }}
                 />
               ))}
@@ -211,7 +211,7 @@ function FreeShapeNode({ id, data, selected }: NodeProps<FreeShapeData>) {
               e.stopPropagation()
               deleteStep(id)
             }}
-            className="absolute -bottom-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-xs text-slate-400 opacity-0 shadow-md ring-1 ring-white/10 transition-opacity hover:text-rose-400 group-hover:opacity-100"
+            className="absolute -bottom-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs text-[#86868b] opacity-0 shadow-md ring-1 ring-[#d2d2d7] transition-opacity hover:text-[#ff3b30] group-hover:opacity-100"
           >
             ×
           </button>

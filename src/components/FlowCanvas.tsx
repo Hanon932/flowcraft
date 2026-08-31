@@ -32,7 +32,7 @@ export default function FlowCanvas() {
   }
 
   return (
-    <div className="h-full w-full" onKeyDown={handleKeyDown}>
+    <div className="h-full w-full bg-[#f5f5f7]" onKeyDown={handleKeyDown}>
       <ReactFlow
         nodes={nodes}
         edges={doc.edges}
@@ -45,7 +45,7 @@ export default function FlowCanvas() {
         elementsSelectable
         onNodeClick={(_, node) => setSelectedNodeId(node.id)}
         onPaneClick={() => setSelectedNodeId(null)}
-        defaultEdgeOptions={{ style: { stroke: '#818cf8', strokeWidth: 1.5 } }}
+        defaultEdgeOptions={{ style: { stroke: '#a1a1a6', strokeWidth: 1.5 } }}
         fitView
       >
         <ExportImagePanel nodes={nodes} fileBaseName={doc.name} />

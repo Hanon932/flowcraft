@@ -32,7 +32,7 @@ export default function FreeCanvas() {
   }
 
   return (
-    <div className="h-full w-full" onKeyDown={handleKeyDown}>
+    <div className="h-full w-full bg-[#f5f5f7]" onKeyDown={handleKeyDown}>
       <ReactFlow
         nodes={nodes}
         edges={doc.edges}

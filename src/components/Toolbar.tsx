@@ -54,12 +54,12 @@ export default function Toolbar() {
   }
 
   return (
-    <div className="flex items-center justify-between border-b border-white/5 bg-slate-950/60 px-5 py-2.5 backdrop-blur-sm">
+    <div className="flex items-center justify-between border-b border-[#d2d2d7] bg-white/80 px-5 py-2.5 backdrop-blur-md">
       <input
         value={doc.name}
         onChange={(e) => renameFlow(doc.id, e.target.value)}
         disabled={mode !== 'edit'}
-        className="w-56 rounded-lg px-2 py-1 text-sm font-semibold text-slate-100 outline-none focus:bg-violet-500/10 disabled:bg-transparent"
+        className="w-56 rounded-lg px-2 py-1 text-sm font-semibold tracking-tight text-[#1d1d1f] outline-none focus:bg-[#0071e3]/10 disabled:bg-transparent"
       />
 
       <div className="flex items-center gap-1.5">
@@ -68,7 +68,7 @@ export default function Toolbar() {
             <button
               type="button"
               onClick={addStep}
-              className="rounded-full bg-violet-500 px-4 py-1.5 text-xs font-medium text-white shadow-sm shadow-violet-900/50 hover:bg-violet-400"
+              className="rounded-full bg-[#0071e3] px-4 py-1.5 text-xs font-medium text-white transition-colors duration-200 hover:bg-[#0077ed]"
             >
               ＋ ステップ追加
             </button>
@@ -76,7 +76,7 @@ export default function Toolbar() {
               type="button"
               onClick={applyFlowchartLayout}
               title="ステップを上から順に綺麗に並べ直します"
-              className="rounded-full px-3 py-1.5 text-xs text-slate-400 hover:bg-white/5"
+              className="rounded-full px-3 py-1.5 text-xs text-[#86868b] transition-colors duration-200 hover:bg-black/[0.03]"
             >
               自動整列
             </button>
@@ -86,14 +86,14 @@ export default function Toolbar() {
         {mode === 'edit' && kind === 'mindmap' && <MindMapLayoutMenu />}
 
         {mode === 'edit' && kind === 'freeform' && (
-          <div className="flex gap-1 rounded-full bg-slate-800 p-0.5">
+          <div className="flex gap-1 rounded-full bg-[#f5f5f7] p-0.5">
             {FREE_SHAPES.map((s) => (
               <button
                 key={s.key}
                 type="button"
                 title={s.label}
                 onClick={() => addFreeShape(s.key)}
-                className="flex h-7 w-7 items-center justify-center rounded-full text-sm text-slate-400 hover:bg-slate-700 hover:text-violet-300"
+                className="flex h-7 w-7 items-center justify-center rounded-full text-sm text-[#86868b] transition-colors duration-200 hover:bg-white hover:text-[#0071e3] hover:shadow-sm"
               >
                 {s.icon}
               </button>
@@ -107,7 +107,7 @@ export default function Toolbar() {
             onClick={undo}
             disabled={!canUndo}
             title="元に戻す（Ctrl+Z）"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-slate-400 hover:bg-white/5 disabled:cursor-not-allowed disabled:text-slate-700 disabled:hover:bg-transparent"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-[#86868b] transition-colors duration-200 hover:bg-black/[0.03] disabled:cursor-not-allowed disabled:text-[#d2d2d7] disabled:hover:bg-transparent"
           >
             ↶
           </button>
@@ -116,20 +116,20 @@ export default function Toolbar() {
             onClick={redo}
             disabled={!canRedo}
             title="やり直す（Ctrl+Shift+Z）"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-slate-400 hover:bg-white/5 disabled:cursor-not-allowed disabled:text-slate-700 disabled:hover:bg-transparent"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-[#86868b] transition-colors duration-200 hover:bg-black/[0.03] disabled:cursor-not-allowed disabled:text-[#d2d2d7] disabled:hover:bg-transparent"
           >
             ↷
           </button>
         </div>
 
-        <div className="flex rounded-full bg-slate-800 p-0.5 text-xs">
+        <div className="flex rounded-full bg-[#f5f5f7] p-0.5 text-xs">
           <button
             type="button"
             onClick={() => setMode('edit')}
-            className={`rounded-full px-3 py-1 transition-colors ${
+            className={`rounded-full px-3 py-1 transition-colors duration-200 ${
               mode === 'edit'
-                ? 'bg-violet-500 text-white shadow-sm'
-                : 'text-slate-500 hover:text-slate-300'
+                ? 'bg-white text-[#0071e3] shadow-sm'
+                : 'text-[#86868b] hover:text-[#1d1d1f]'
             }`}
           >
             編集
@@ -137,31 +137,31 @@ export default function Toolbar() {
           <button
             type="button"
             onClick={() => setMode('view')}
-            className={`rounded-full px-3 py-1 transition-colors ${
+            className={`rounded-full px-3 py-1 transition-colors duration-200 ${
               mode === 'view'
-                ? 'bg-violet-500 text-white shadow-sm'
-                : 'text-slate-500 hover:text-slate-300'
+                ? 'bg-white text-[#0071e3] shadow-sm'
+                : 'text-[#86868b] hover:text-[#1d1d1f]'
             }`}
           >
             閲覧
           </button>
         </div>
 
-        <div className="mx-1 h-5 w-px bg-white/10" />
+        <div className="mx-1 h-5 w-px bg-[#d2d2d7]" />
 
         <GoogleDriveMenu />
 
         <button
           type="button"
           onClick={handleExport}
-          className="rounded-full px-3 py-1.5 text-xs text-slate-400 hover:bg-white/5"
+          className="rounded-full px-3 py-1.5 text-xs text-[#86868b] transition-colors duration-200 hover:bg-black/[0.03]"
         >
           エクスポート
         </button>
         <button
           type="button"
           onClick={handleImportClick}
-          className="rounded-full px-3 py-1.5 text-xs text-slate-400 hover:bg-white/5"
+          className="rounded-full px-3 py-1.5 text-xs text-[#86868b] transition-colors duration-200 hover:bg-black/[0.03]"
         >
           インポート
         </button>

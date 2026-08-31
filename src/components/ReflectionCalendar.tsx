@@ -44,18 +44,18 @@ export default function ReflectionCalendar({
         <button
           type="button"
           onClick={prevMonth}
-          className="flex h-6 w-6 items-center justify-center rounded-full text-slate-500 hover:bg-white/5"
+          className="flex h-6 w-6 items-center justify-center rounded-full text-[#86868b] hover:bg-black/[0.03]"
           title="前の月"
         >
           ‹
         </button>
-        <span className="text-xs font-semibold text-slate-200">
+        <span className="text-xs font-semibold tracking-tight text-[#1d1d1f]">
           {year}年{month}月
         </span>
         <button
           type="button"
           onClick={nextMonth}
-          className="flex h-6 w-6 items-center justify-center rounded-full text-slate-500 hover:bg-white/5"
+          className="flex h-6 w-6 items-center justify-center rounded-full text-[#86868b] hover:bg-black/[0.03]"
           title="次の月"
         >
           ›
@@ -64,7 +64,7 @@ export default function ReflectionCalendar({
 
       <div className="grid grid-cols-7 gap-y-1 text-center">
         {WEEKDAYS.map((w) => (
-          <span key={w} className="text-[10px] font-medium text-slate-600">
+          <span key={w} className="text-[10px] font-medium text-[#c7c7cc]">
             {w}
           </span>
         ))}
@@ -79,17 +79,17 @@ export default function ReflectionCalendar({
               key={dateKey}
               type="button"
               onClick={() => onSelectDate(dateKey)}
-              className={`relative mx-auto flex h-7 w-7 items-center justify-center rounded-full text-xs transition-colors ${
+              className={`relative mx-auto flex h-7 w-7 items-center justify-center rounded-full text-xs transition-colors duration-200 ${
                 selected
-                  ? 'bg-violet-500 font-semibold text-white'
+                  ? 'bg-[#0071e3] font-semibold text-white'
                   : isToday
-                    ? 'font-semibold text-cyan-300 ring-1 ring-cyan-400/60'
-                    : 'text-slate-400 hover:bg-white/5'
+                    ? 'font-semibold text-[#0071e3] ring-1 ring-[#0071e3]/50'
+                    : 'text-[#1d1d1f] hover:bg-black/[0.03]'
               }`}
             >
               {day}
               {filled && !selected && (
-                <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-violet-400" />
+                <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-[#0071e3]" />
               )}
             </button>
           )

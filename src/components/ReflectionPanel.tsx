@@ -108,16 +108,16 @@ export default function ReflectionPanel() {
 
   return (
     <div className="mx-auto flex h-full w-full max-w-3xl min-h-0 flex-col p-6">
-      <div className="mb-4 flex gap-1 rounded-full bg-slate-900/70 p-0.5 text-xs w-fit ring-1 ring-white/5">
+      <div className="mb-4 flex gap-1 rounded-full bg-[#f5f5f7] p-0.5 text-xs w-fit">
         {TABS.map((t) => (
           <button
             key={t.key}
             type="button"
             onClick={() => setTab(t.key)}
-            className={`rounded-full px-3 py-1.5 transition-colors ${
+            className={`rounded-full px-3 py-1.5 transition-colors duration-200 ${
               tab === t.key
-                ? 'bg-violet-500 font-medium text-white shadow-sm'
-                : 'text-slate-500 hover:text-slate-300'
+                ? 'bg-white font-medium text-[#0071e3] shadow-sm'
+                : 'text-[#86868b] hover:text-[#1d1d1f]'
             }`}
           >
             {t.label}
@@ -134,18 +134,18 @@ export default function ReflectionPanel() {
               <button
                 type="button"
                 onClick={() => selectDate(addDays(selectedDate, -1))}
-                className="flex h-7 w-7 items-center justify-center rounded-full text-slate-400 hover:bg-white/5"
+                className="flex h-7 w-7 items-center justify-center rounded-full text-[#86868b] hover:bg-black/[0.03]"
                 title="前の日"
               >
                 ‹
               </button>
-              <span className="w-44 text-center text-sm font-semibold text-slate-100">
+              <span className="w-44 text-center text-sm font-semibold tracking-tight text-[#1d1d1f]">
                 {formatDateLabel(selectedDate)}
               </span>
               <button
                 type="button"
                 onClick={() => selectDate(addDays(selectedDate, 1))}
-                className="flex h-7 w-7 items-center justify-center rounded-full text-slate-400 hover:bg-white/5"
+                className="flex h-7 w-7 items-center justify-center rounded-full text-[#86868b] hover:bg-black/[0.03]"
                 title="次の日"
               >
                 ›
@@ -154,7 +154,7 @@ export default function ReflectionPanel() {
                 <button
                   type="button"
                   onClick={() => selectDate(today)}
-                  className="ml-1 rounded-full px-3 py-1.5 text-xs text-cyan-300 hover:bg-cyan-400/10"
+                  className="ml-1 rounded-full px-3 py-1.5 text-xs text-[#0071e3] hover:bg-[#0071e3]/10"
                 >
                   今日に戻る
                 </button>
@@ -164,10 +164,10 @@ export default function ReflectionPanel() {
             <div className="relative flex items-center gap-1">
               {driveFileId && (
                 <span
-                  className="flex items-center gap-1 rounded-full bg-cyan-400/10 px-2.5 py-1 text-[10px] font-medium text-cyan-300"
+                  className="flex items-center gap-1 rounded-full bg-[#34c759]/10 px-2.5 py-1 text-[10px] font-medium text-[#248a3d]"
                   title="変更すると自動的にGoogleドライブへ保存されます"
                 >
-                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#34c759]" />
                   自動保存オン
                 </span>
               )}
@@ -175,7 +175,7 @@ export default function ReflectionPanel() {
                 type="button"
                 onClick={handleDriveSave}
                 disabled={driveBusy}
-                className="rounded-full px-3 py-1.5 text-xs text-slate-400 hover:bg-white/5 disabled:opacity-50"
+                className="rounded-full px-3 py-1.5 text-xs text-[#86868b] hover:bg-black/[0.03] disabled:opacity-50"
               >
                 Driveに保存
               </button>
@@ -183,12 +183,12 @@ export default function ReflectionPanel() {
                 type="button"
                 onClick={handleDriveLoad}
                 disabled={driveBusy}
-                className="rounded-full px-3 py-1.5 text-xs text-slate-400 hover:bg-white/5 disabled:opacity-50"
+                className="rounded-full px-3 py-1.5 text-xs text-[#86868b] hover:bg-black/[0.03] disabled:opacity-50"
               >
                 Driveから読み込む
               </button>
               {driveStatus && (
-                <div className="absolute right-0 top-full z-20 mt-1 whitespace-nowrap rounded-full bg-slate-800/95 px-3 py-1 text-xs text-slate-100 shadow-md ring-1 ring-white/10">
+                <div className="absolute right-0 top-full z-20 mt-1 whitespace-nowrap rounded-full bg-[#1d1d1f]/95 px-3 py-1 text-xs text-white shadow-md">
                   {driveStatus}
                 </div>
               )}
@@ -199,9 +199,9 @@ export default function ReflectionPanel() {
             <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-y-auto">
               <div className="flex flex-col">
                 <div className="mb-1.5 flex items-center justify-between">
-                  <label className="text-xs font-medium text-slate-500">反省点</label>
+                  <label className="text-xs font-medium text-[#86868b]">反省点</label>
                   {entry && (entry.problem || entry.improvement) && (
-                    <span className="text-[11px] text-slate-600">
+                    <span className="text-[11px] text-[#c7c7cc]">
                       {new Date(entry.updatedAt).toLocaleTimeString('ja-JP', {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -214,21 +214,21 @@ export default function ReflectionPanel() {
                   value={entry?.problem ?? ''}
                   onChange={(e) => upsertEntry(selectedDate, { problem: e.target.value })}
                   placeholder="うまくいかなかったこと、気づいた課題を書きましょう"
-                  className="h-40 w-full resize-none rounded-xl bg-slate-900/70 p-3 text-sm leading-relaxed text-slate-100 outline-none ring-1 ring-white/5 focus:bg-slate-900 focus:ring-violet-500"
+                  className="h-40 w-full resize-none rounded-xl bg-[#f5f5f7] p-3 text-sm leading-relaxed text-[#1d1d1f] outline-none ring-1 ring-transparent focus:bg-white focus:ring-[#0071e3]"
                 />
               </div>
               <div className="flex flex-col">
-                <label className="mb-1.5 text-xs font-medium text-slate-500">改善点</label>
+                <label className="mb-1.5 text-xs font-medium text-[#86868b]">改善点</label>
                 <textarea
                   value={entry?.improvement ?? ''}
                   onChange={(e) => upsertEntry(selectedDate, { improvement: e.target.value })}
                   placeholder="次はどう変えるか、具体的なアクションを書きましょう"
-                  className="h-40 w-full resize-none rounded-xl bg-slate-900/70 p-3 text-sm leading-relaxed text-slate-100 outline-none ring-1 ring-white/5 focus:bg-slate-900 focus:ring-violet-500"
+                  className="h-40 w-full resize-none rounded-xl bg-[#f5f5f7] p-3 text-sm leading-relaxed text-[#1d1d1f] outline-none ring-1 ring-transparent focus:bg-white focus:ring-[#0071e3]"
                 />
               </div>
             </div>
 
-            <div className="flex w-64 shrink-0 flex-col overflow-y-auto border-l border-white/5 pl-4">
+            <div className="flex w-64 shrink-0 flex-col overflow-y-auto border-l border-[#d2d2d7] pl-4">
               <ReflectionCalendar
                 year={calendarMonth.year}
                 month={calendarMonth.month}
@@ -239,7 +239,7 @@ export default function ReflectionPanel() {
                 onChangeMonth={(year, month) => setCalendarMonth({ year, month })}
               />
 
-              <span className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-[#86868b]">
                 履歴
               </span>
               <div className="flex-1 overflow-y-auto">
@@ -247,10 +247,10 @@ export default function ReflectionPanel() {
                   <div
                     key={e.id}
                     onClick={() => selectDate(e.date)}
-                    className={`group mb-1 cursor-pointer rounded-xl px-3 py-2 text-xs transition-colors ${
+                    className={`group mb-1 cursor-pointer rounded-xl px-3 py-2 text-xs transition-colors duration-200 ${
                       e.date === selectedDate
-                        ? 'bg-violet-500/15 text-violet-300'
-                        : 'text-slate-400 hover:bg-white/5'
+                        ? 'bg-[#0071e3]/10 text-[#0071e3]'
+                        : 'text-[#1d1d1f] hover:bg-black/[0.03]'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -263,17 +263,17 @@ export default function ReflectionPanel() {
                             deleteEntry(e.id)
                           }
                         }}
-                        className="ml-1 hidden shrink-0 rounded-full px-1.5 text-slate-600 hover:bg-rose-500/10 hover:text-rose-400 group-hover:block"
+                        className="ml-1 hidden shrink-0 rounded-full px-1.5 text-[#c7c7cc] hover:bg-[#ff3b30]/10 hover:text-[#ff3b30] group-hover:block"
                         title="削除"
                       >
                         ×
                       </button>
                     </div>
-                    <p className="mt-0.5 truncate text-slate-500">{e.problem || e.improvement}</p>
+                    <p className="mt-0.5 truncate text-[#86868b]">{e.problem || e.improvement}</p>
                   </div>
                 ))}
                 {history.length === 0 && (
-                  <p className="px-1 py-4 text-center text-xs text-slate-600">
+                  <p className="px-1 py-4 text-center text-xs text-[#86868b]">
                     まだ記録がありません。
                   </p>
                 )}

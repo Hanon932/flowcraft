@@ -15,7 +15,7 @@ export async function flowToPngBlob(nodes: Node[]): Promise<Blob> {
   const viewport = getViewportForBounds(bounds, width, height, MIN_ZOOM, MAX_ZOOM, PADDING)
 
   const dataUrl = await toPng(viewportEl, {
-    backgroundColor: '#05060f',
+    backgroundColor: '#ffffff',
     width,
     height,
     style: {

@@ -27,7 +27,7 @@ function App() {
   }, [])
 
   return (
-    <div className="starfield flex h-screen w-screen text-slate-100">
+    <div className="flex h-screen w-screen bg-[#fbfbfd] text-[#1d1d1f]">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         {section === 'reflection' ? (
@@ -46,7 +46,7 @@ function App() {
                 )}
               </div>
               {kind === 'flowchart' && (
-                <div className="w-80 shrink-0 border-l border-white/5">
+                <div className="w-80 shrink-0 border-l border-[#d2d2d7]">
                   <ManualPanel />
                 </div>
               )}

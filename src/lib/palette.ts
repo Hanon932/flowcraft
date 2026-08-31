@@ -1,10 +1,10 @@
 export const BRANCH_COLORS = [
-  '#38bdf8',
-  '#fbbf24',
-  '#34d399',
-  '#fb7185',
-  '#a78bfa',
-  '#22d3ee',
-  '#a3e635',
-  '#f472b6',
+  '#0071e3',
+  '#ff9500',
+  '#34c759',
+  '#ff3b30',
+  '#af52de',
+  '#5ac8fa',
+  '#ffcc00',
+  '#ff2d55',
 ]
