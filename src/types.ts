@@ -13,11 +13,16 @@ export type StepNode = Node<StepData>
 
 export type DocKind = 'flowchart' | 'mindmap' | 'freeform'
 
+export type MilestoneStatus = 'todo' | 'doing' | 'done'
+
 export interface MindMapNodeData {
   text: string
   color?: string
   root?: boolean
   collapsed?: boolean
+  status?: MilestoneStatus
+  progressDone?: number
+  progressTotal?: number
   [key: string]: unknown
 }
 
@@ -51,6 +56,7 @@ export interface ReflectionEntry {
   date: string
   problem: string
   improvement: string
+  goalAction: string
   updatedAt: number
 }
 
@@ -61,5 +67,13 @@ export interface MonthlyGoal {
   doPlan: string
   check: string
   act: string
+  updatedAt: number
+}
+
+export interface GoalProfile {
+  title: string
+  why: string
+  roadmapDocId?: string
+  driveFileId?: string
   updatedAt: number
 }

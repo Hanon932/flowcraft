@@ -1,4 +1,4 @@
-import type { FlowDoc, MonthlyGoal, ReflectionEntry } from '../types'
+import type { FlowDoc, GoalProfile, MonthlyGoal, ReflectionEntry } from '../types'
 
 const SCOPE = 'https://www.googleapis.com/auth/drive.file'
 const DRIVE_FILES_URL = 'https://www.googleapis.com/drive/v3/files'
@@ -191,4 +191,33 @@ export async function loadGoalsFromDrive(fileId: string): Promise<MonthlyGoal[]>
   const token = await requestAccessToken()
   const res = await driveFetch(`${DRIVE_FILES_URL}/${fileId}?alt=media`, token)
   return (await res.json()) as MonthlyGoal[]
+}
+
+const GOAL_PROFILE_FILE_NAME = 'flowcraft-goal-profile.json'
+
+export async function saveGoalProfileToDrive(
+  profile: GoalProfile,
+  existingFileId?: string,
+): Promise<string> {
+  const { driveFileId: _driveFileId, ...rest } = profile
+  return uploadJson(GOAL_PROFILE_FILE_NAME, rest, existingFileId)
+}
+
+export async function findGoalProfileFile(): Promise<DriveFileSummary | null> {
+  const token = await requestAccessToken()
+  const params = new URLSearchParams({
+    q: `name='${GOAL_PROFILE_FILE_NAME}' and trashed=false`,
+    fields: 'files(id,name,modifiedTime)',
+    spaces: 'drive',
+    pageSize: '1',
+  })
+  const res = await driveFetch(`${DRIVE_FILES_URL}?${params.toString()}`, token)
+  const json = (await res.json()) as { files: DriveFileSummary[] }
+  return json.files[0] ?? null
+}
+
+export async function loadGoalProfileFromDrive(fileId: string): Promise<GoalProfile> {
+  const token = await requestAccessToken()
+  const res = await driveFetch(`${DRIVE_FILES_URL}/${fileId}?alt=media`, token)
+  return (await res.json()) as GoalProfile
 }

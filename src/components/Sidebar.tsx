@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useFlowStore, useUiStore, type UiSection } from '../store'
+import { useFlowStore, useGoalProfileStore, useUiStore, type UiSection } from '../store'
 
 const TABS: { key: UiSection; label: string }[] = [
   { key: 'flowchart', label: 'フローチャート' },
@@ -19,6 +19,7 @@ export default function Sidebar() {
   const [draftName, setDraftName] = useState('')
   const section = useUiStore((s) => s.section)
   const setSection = useUiStore((s) => s.setSection)
+  const roadmapDocId = useGoalProfileStore((s) => s.roadmapDocId)
 
   const visibleDocs =
     section === 'reflection' ? [] : docs.filter((d) => (d.kind ?? 'flowchart') === section)
@@ -98,6 +99,7 @@ export default function Sidebar() {
                         setDraftName(d.name)
                       }}
                     >
+                      {d.id === roadmapDocId && '🎯 '}
                       {d.name}
                     </span>
                   )}

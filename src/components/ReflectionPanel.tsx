@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { findReflectionsFile, loadReflectionsFromDrive, saveReflectionsToDrive } from '../lib/googleDrive'
 import { useDriveAutoSave } from '../lib/useDriveAutoSave'
-import { useReflectionStore } from '../store'
+import { useGoalProfileStore, useReflectionStore } from '../store'
+import GoalRoadmapPanel from './GoalRoadmapPanel'
 import MonthlyGoalPanel from './MonthlyGoalPanel'
 import ReflectionCalendar from './ReflectionCalendar'
 
@@ -25,13 +26,15 @@ function addDays(dateKey: string, delta: number): string {
   return toDateKey(date)
 }
 
-const TABS: { key: 'daily' | 'goal'; label: string }[] = [
+const TABS: { key: 'daily' | 'roadmap' | 'pdca'; label: string }[] = [
   { key: 'daily', label: '日次振り返り' },
-  { key: 'goal', label: '月間目標（PDCA）' },
+  { key: 'roadmap', label: '🎯 目標ロードマップ' },
+  { key: 'pdca', label: '月間PDCA' },
 ]
 
 export default function ReflectionPanel() {
-  const [tab, setTab] = useState<'daily' | 'goal'>('daily')
+  const [tab, setTab] = useState<'daily' | 'roadmap' | 'pdca'>('daily')
+  const goalTitle = useGoalProfileStore((s) => s.title)
   const today = toDateKey(new Date())
   const [selectedDate, setSelectedDate] = useState(today)
   const [calendarMonth, setCalendarMonth] = useState(() => {
@@ -125,8 +128,10 @@ export default function ReflectionPanel() {
         ))}
       </div>
 
-      {tab === 'goal' ? (
+      {tab === 'pdca' ? (
         <MonthlyGoalPanel onJumpToDate={jumpToDaily} />
+      ) : tab === 'roadmap' ? (
+        <GoalRoadmapPanel onJumpToDate={jumpToDaily} />
       ) : (
         <>
           <div className="mb-4 flex items-center justify-between">
@@ -197,6 +202,19 @@ export default function ReflectionPanel() {
 
           <div className="flex min-h-0 flex-1 gap-6">
             <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-y-auto">
+              {goalTitle && (
+                <div className="flex flex-col">
+                  <label className="mb-1.5 text-xs font-medium text-[#86868b]">
+                    🎯 「{goalTitle}」に向けて取り組んだこと
+                  </label>
+                  <textarea
+                    value={entry?.goalAction ?? ''}
+                    onChange={(e) => upsertEntry(selectedDate, { goalAction: e.target.value })}
+                    placeholder="今日、目標に近づくためにやったことを書きましょう"
+                    className="h-24 w-full resize-none rounded-xl bg-[#0071e3]/5 p-3 text-sm leading-relaxed text-[#1d1d1f] outline-none ring-1 ring-transparent focus:bg-white focus:ring-[#0071e3]"
+                  />
+                </div>
+              )}
               <div className="flex flex-col">
                 <div className="mb-1.5 flex items-center justify-between">
                   <label className="text-xs font-medium text-[#86868b]">反省点</label>

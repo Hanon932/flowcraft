@@ -24,6 +24,7 @@ import type {
   DocKind,
   FlowDoc,
   FreeShape,
+  GoalProfile,
   MindMapNodeData,
   MonthlyGoal,
   ReflectionEntry,
@@ -96,6 +97,7 @@ interface FlowStore {
   setSelectedNodeId: (id: string | null) => void
 
   createFlow: (kind: DocKind) => void
+  createGoalRoadmap: (title: string) => string
   renameFlow: (id: string, name: string) => void
   deleteFlow: (id: string) => void
 
@@ -149,6 +151,17 @@ export const useFlowStore = create<FlowStore>()(
           kind === 'mindmap' ? 'マインドマップ' : kind === 'freeform' ? 'ホワイトボード' : '新しいフロー'
         const doc = createDoc(`${label} ${countOfKind + 1}`, kind)
         set((s) => ({ docs: [...s.docs, doc], activeId: doc.id, selectedNodeId: null }))
+      },
+      createGoalRoadmap: (title) => {
+        const doc = createDoc(title || '目標ロードマップ', 'mindmap')
+        doc.nodes = [
+          {
+            ...doc.nodes[0],
+            data: { ...doc.nodes[0].data, text: title || '目標' },
+          },
+        ]
+        set((s) => ({ docs: [...s.docs, doc], activeId: doc.id, selectedNodeId: null }))
+        return doc.id
       },
       renameFlow: (id, name) => {
         set((s) => ({
@@ -475,7 +488,10 @@ interface ReflectionStore {
   entries: ReflectionEntry[]
   driveFileId?: string
   getEntry: (date: string) => ReflectionEntry | undefined
-  upsertEntry: (date: string, patch: Partial<Pick<ReflectionEntry, 'problem' | 'improvement'>>) => void
+  upsertEntry: (
+    date: string,
+    patch: Partial<Pick<ReflectionEntry, 'problem' | 'improvement' | 'goalAction'>>,
+  ) => void
   deleteEntry: (id: string) => void
   setDriveFileId: (driveFileId: string) => void
   mergeFromDrive: (remoteEntries: ReflectionEntry[]) => void
@@ -502,6 +518,7 @@ export const useReflectionStore = create<ReflectionStore>()(
             date,
             problem: '',
             improvement: '',
+            goalAction: '',
             ...patch,
             updatedAt: Date.now(),
           }
@@ -589,5 +606,33 @@ export const useGoalStore = create<GoalStore>()(
       },
     }),
     { name: 'flowcraft-goals' },
+  ),
+)
+
+interface GoalProfileStore extends GoalProfile {
+  setGoal: (patch: Partial<Pick<GoalProfile, 'title' | 'why'>>) => void
+  setRoadmapDocId: (roadmapDocId: string) => void
+  setDriveFileId: (driveFileId: string) => void
+  mergeFromDrive: (remote: GoalProfile) => void
+}
+
+export const useGoalProfileStore = create<GoalProfileStore>()(
+  persist(
+    (set, get) => ({
+      title: '',
+      why: '',
+      roadmapDocId: undefined,
+      driveFileId: undefined,
+      updatedAt: 0,
+      setGoal: (patch) => set({ ...patch, updatedAt: Date.now() }),
+      setRoadmapDocId: (roadmapDocId) => set({ roadmapDocId, updatedAt: Date.now() }),
+      setDriveFileId: (driveFileId) => set({ driveFileId }),
+      mergeFromDrive: (remote) => {
+        if (remote.updatedAt > get().updatedAt) {
+          set({ ...remote })
+        }
+      },
+    }),
+    { name: 'flowcraft-goal-profile' },
   ),
 )
