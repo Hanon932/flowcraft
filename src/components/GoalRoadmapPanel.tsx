@@ -30,7 +30,7 @@ export default function GoalRoadmapPanel({ onJumpToDate }: { onJumpToDate: (date
 
   const reflectionEntries = useReflectionStore((s) => s.entries)
   const actionLog = [...reflectionEntries]
-    .filter((e) => e.goalAction.trim())
+    .filter((e) => (e.goalAction ?? '').trim())
     .sort((a, b) => (a.date < b.date ? 1 : -1))
     .slice(0, 14)
 
