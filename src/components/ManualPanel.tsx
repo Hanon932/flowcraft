@@ -13,7 +13,7 @@ export default function ManualPanel() {
 
   if (!node) {
     return (
-      <div className="flex h-full items-center justify-center p-6 text-center text-sm text-neutral-300">
+      <div className="flex h-full items-center justify-center p-6 text-center text-sm text-slate-600">
         図形をクリックすると、
         <br />
         ステップのマニュアルがここに表示されます。
@@ -24,15 +24,15 @@ export default function ManualPanel() {
   const isEdit = mode === 'edit'
 
   return (
-    <div className="flex h-full flex-col bg-white">
-      <div className="flex items-center justify-between border-b border-neutral-100 p-3">
-        <span className="text-xs font-medium text-neutral-400">ステップの詳細</span>
+    <div className="flex h-full flex-col bg-slate-950/40">
+      <div className="flex items-center justify-between border-b border-white/5 p-3">
+        <span className="text-xs font-medium text-slate-500">ステップの詳細</span>
         <div className="flex items-center gap-1">
           {isEdit && (
             <button
               type="button"
               onClick={() => deleteStep(node.id)}
-              className="rounded-full px-2.5 py-1 text-xs text-red-400 hover:bg-red-50"
+              className="rounded-full px-2.5 py-1 text-xs text-rose-400 hover:bg-rose-500/10"
             >
               削除
             </button>
@@ -40,7 +40,7 @@ export default function ManualPanel() {
           <button
             type="button"
             onClick={() => setSelectedNodeId(null)}
-            className="flex h-6 w-6 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100"
+            className="flex h-6 w-6 items-center justify-center rounded-full text-slate-500 hover:bg-white/5"
           >
             ×
           </button>
@@ -53,12 +53,10 @@ export default function ManualPanel() {
             value={node.data.title}
             onChange={(e) => updateStep(node.id, { title: e.target.value })}
             placeholder="ステップ名"
-            className="w-full rounded-xl bg-neutral-100 px-3 py-2 text-sm font-semibold outline-none ring-1 ring-transparent focus:bg-white focus:ring-sky-400"
+            className="w-full rounded-xl bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-100 outline-none ring-1 ring-transparent focus:bg-slate-900 focus:ring-violet-500"
           />
         ) : (
-          <h3 className="text-sm font-semibold text-neutral-800">
-            {node.data.title}
-          </h3>
+          <h3 className="text-sm font-semibold text-slate-100">{node.data.title}</h3>
         )}
       </div>
 
@@ -69,8 +67,8 @@ export default function ManualPanel() {
             onClick={() => setTab('edit')}
             className={`rounded-full px-3 py-1 text-xs transition-colors ${
               tab === 'edit'
-                ? 'bg-sky-100 font-medium text-sky-600'
-                : 'text-neutral-400 hover:text-neutral-600'
+                ? 'bg-violet-500/15 font-medium text-violet-300'
+                : 'text-slate-500 hover:text-slate-300'
             }`}
           >
             編集
@@ -80,8 +78,8 @@ export default function ManualPanel() {
             onClick={() => setTab('preview')}
             className={`rounded-full px-3 py-1 text-xs transition-colors ${
               tab === 'preview'
-                ? 'bg-sky-100 font-medium text-sky-600'
-                : 'text-neutral-400 hover:text-neutral-600'
+                ? 'bg-violet-500/15 font-medium text-violet-300'
+                : 'text-slate-500 hover:text-slate-300'
             }`}
           >
             プレビュー
@@ -95,14 +93,14 @@ export default function ManualPanel() {
             value={node.data.manual}
             onChange={(e) => updateStep(node.id, { manual: e.target.value })}
             placeholder={'このステップの手順をMarkdownで書けます。\n\n例:\n1. ボタンを押す\n2. 内容を確認する'}
-            className="h-full w-full resize-none rounded-xl bg-neutral-100 p-3 font-mono text-xs leading-relaxed outline-none ring-1 ring-transparent focus:bg-white focus:ring-sky-400"
+            className="h-full w-full resize-none rounded-xl bg-slate-800 p-3 font-mono text-xs leading-relaxed text-slate-100 outline-none ring-1 ring-transparent focus:bg-slate-900 focus:ring-violet-500"
           />
         ) : node.data.manual ? (
-          <div className="prose prose-sm max-w-none">
+          <div className="prose prose-sm prose-invert max-w-none">
             <ReactMarkdown>{node.data.manual}</ReactMarkdown>
           </div>
         ) : (
-          <p className="text-sm italic text-neutral-300">まだマニュアルが書かれていません。</p>
+          <p className="text-sm italic text-slate-600">まだマニュアルが書かれていません。</p>
         )}
       </div>
     </div>

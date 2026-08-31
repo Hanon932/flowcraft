@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { findGoalsFile, loadGoalsFromDrive, saveGoalsToDrive } from '../lib/googleDrive'
+import { useDriveAutoSave } from '../lib/useDriveAutoSave'
 import { useGoalStore, useReflectionStore } from '../store'
 
 const PDCA_FIELDS: {
@@ -14,28 +15,28 @@ const PDCA_FIELDS: {
     badge: 'P',
     label: 'Plan（計画）',
     placeholder: '今月達成したい目標を書きましょう',
-    color: 'bg-sky-100 text-sky-600',
+    color: 'bg-violet-400/20 text-violet-300',
   },
   {
     key: 'doPlan',
     badge: 'D',
     label: 'Do（実行）',
     placeholder: '目標達成のために具体的に取り組むことを書きましょう',
-    color: 'bg-emerald-100 text-emerald-600',
+    color: 'bg-emerald-400/20 text-emerald-300',
   },
   {
     key: 'check',
     badge: 'C',
     label: 'Check（評価）',
     placeholder: '月末に、目標に対してどうだったか振り返りましょう（日々の反省点も参考に）',
-    color: 'bg-amber-100 text-amber-600',
+    color: 'bg-amber-400/20 text-amber-300',
   },
   {
     key: 'act',
     badge: 'A',
     label: 'Act（改善）',
     placeholder: '来月にどう活かすか、次のアクションを書きましょう',
-    color: 'bg-rose-100 text-rose-600',
+    color: 'bg-rose-400/20 text-rose-300',
   },
 ]
 
@@ -135,6 +136,8 @@ export default function MonthlyGoalPanel({ onJumpToDate }: MonthlyGoalPanelProps
     }
   }
 
+  useDriveAutoSave(Boolean(driveFileId), goals, handleDriveSave)
+
   return (
     <div className="flex min-h-0 flex-1 gap-6">
       <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-y-auto">
@@ -143,18 +146,18 @@ export default function MonthlyGoalPanel({ onJumpToDate }: MonthlyGoalPanelProps
             <button
               type="button"
               onClick={prevMonth}
-              className="flex h-7 w-7 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100"
+              className="flex h-7 w-7 items-center justify-center rounded-full text-slate-400 hover:bg-white/5"
               title="前の月"
             >
               ‹
             </button>
-            <span className="w-28 text-center text-sm font-semibold text-neutral-800">
+            <span className="w-28 text-center text-sm font-semibold text-slate-100">
               {formatMonthLabel(monthKey)}
             </span>
             <button
               type="button"
               onClick={nextMonth}
-              className="flex h-7 w-7 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100"
+              className="flex h-7 w-7 items-center justify-center rounded-full text-slate-400 hover:bg-white/5"
               title="次の月"
             >
               ›
@@ -166,7 +169,7 @@ export default function MonthlyGoalPanel({ onJumpToDate }: MonthlyGoalPanelProps
                   setYear(now.getFullYear())
                   setMonth(now.getMonth() + 1)
                 }}
-                className="ml-1 rounded-full px-3 py-1.5 text-xs text-sky-600 hover:bg-sky-50"
+                className="ml-1 rounded-full px-3 py-1.5 text-xs text-cyan-300 hover:bg-cyan-400/10"
               >
                 今月に戻る
               </button>
@@ -174,11 +177,20 @@ export default function MonthlyGoalPanel({ onJumpToDate }: MonthlyGoalPanelProps
           </div>
 
           <div className="relative flex items-center gap-1">
+            {driveFileId && (
+              <span
+                className="flex items-center gap-1 rounded-full bg-cyan-400/10 px-2.5 py-1 text-[10px] font-medium text-cyan-300"
+                title="変更すると自動的にGoogleドライブへ保存されます"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+                自動保存オン
+              </span>
+            )}
             <button
               type="button"
               onClick={handleDriveSave}
               disabled={driveBusy}
-              className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100 disabled:opacity-50"
+              className="rounded-full px-3 py-1.5 text-xs text-slate-400 hover:bg-white/5 disabled:opacity-50"
             >
               Driveに保存
             </button>
@@ -186,12 +198,12 @@ export default function MonthlyGoalPanel({ onJumpToDate }: MonthlyGoalPanelProps
               type="button"
               onClick={handleDriveLoad}
               disabled={driveBusy}
-              className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100 disabled:opacity-50"
+              className="rounded-full px-3 py-1.5 text-xs text-slate-400 hover:bg-white/5 disabled:opacity-50"
             >
               Driveから読み込む
             </button>
             {driveStatus && (
-              <div className="absolute right-0 top-full z-20 mt-1 whitespace-nowrap rounded-full bg-neutral-800/90 px-3 py-1 text-xs text-white shadow-md">
+              <div className="absolute right-0 top-full z-20 mt-1 whitespace-nowrap rounded-full bg-slate-800/95 px-3 py-1 text-xs text-slate-100 shadow-md ring-1 ring-white/10">
                 {driveStatus}
               </div>
             )}
@@ -199,7 +211,7 @@ export default function MonthlyGoalPanel({ onJumpToDate }: MonthlyGoalPanelProps
         </div>
 
         {goal && (goal.plan || goal.doPlan || goal.check || goal.act) && (
-          <span className="text-[11px] text-neutral-300">
+          <span className="text-[11px] text-slate-600">
             {new Date(goal.updatedAt).toLocaleTimeString('ja-JP', {
               hour: '2-digit',
               minute: '2-digit',
@@ -210,7 +222,7 @@ export default function MonthlyGoalPanel({ onJumpToDate }: MonthlyGoalPanelProps
 
         {PDCA_FIELDS.map((f) => (
           <div key={f.key} className="flex flex-col">
-            <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-neutral-400">
+            <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-500">
               <span
                 className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold ${f.color}`}
               >
@@ -222,14 +234,14 @@ export default function MonthlyGoalPanel({ onJumpToDate }: MonthlyGoalPanelProps
               value={goal?.[f.key] ?? ''}
               onChange={(e) => upsertGoal(monthKey, { [f.key]: e.target.value })}
               placeholder={f.placeholder}
-              className="h-24 w-full resize-none rounded-xl bg-neutral-100 p-3 text-sm leading-relaxed outline-none ring-1 ring-transparent focus:bg-white focus:ring-sky-400"
+              className="h-24 w-full resize-none rounded-xl bg-slate-900/70 p-3 text-sm leading-relaxed text-slate-100 outline-none ring-1 ring-white/5 focus:bg-slate-900 focus:ring-violet-500"
             />
           </div>
         ))}
       </div>
 
-      <div className="flex w-56 shrink-0 flex-col border-l border-neutral-100 pl-4">
-        <span className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">
+      <div className="flex w-56 shrink-0 flex-col border-l border-white/5 pl-4">
+        <span className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
           この月の日次振り返り
         </span>
         <div className="flex-1 overflow-y-auto">
@@ -237,14 +249,14 @@ export default function MonthlyGoalPanel({ onJumpToDate }: MonthlyGoalPanelProps
             <div
               key={e.id}
               onClick={() => onJumpToDate(e.date)}
-              className="group mb-1 cursor-pointer rounded-xl px-3 py-2 text-xs text-neutral-500 transition-colors hover:bg-neutral-100"
+              className="group mb-1 cursor-pointer rounded-xl px-3 py-2 text-xs text-slate-400 transition-colors hover:bg-white/5"
             >
               <span className="font-medium">{formatDayLabel(e.date)}</span>
-              <p className="mt-0.5 truncate text-neutral-400">{e.problem || e.improvement}</p>
+              <p className="mt-0.5 truncate text-slate-500">{e.problem || e.improvement}</p>
             </div>
           ))}
           {monthEntries.length === 0 && (
-            <p className="px-1 py-4 text-center text-xs text-neutral-300">
+            <p className="px-1 py-4 text-center text-xs text-slate-600">
               この月の記録はまだありません。
             </p>
           )}

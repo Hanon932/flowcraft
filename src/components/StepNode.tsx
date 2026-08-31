@@ -20,15 +20,15 @@ const SHAPE_ICONS: Record<StepShape, string> = {
 }
 
 const SHAPE_BOX_CLASS: Record<StepShape, string> = {
-  rectangle: 'min-w-[160px] max-w-[220px] rounded-2xl border-2 bg-white shadow-sm',
-  oval: 'min-w-[160px] max-w-[220px] rounded-full border-2 bg-white shadow-sm',
+  rectangle: 'min-w-[160px] max-w-[220px] rounded-2xl border-2 bg-slate-900 shadow-sm',
+  oval: 'min-w-[160px] max-w-[220px] rounded-full border-2 bg-slate-900 shadow-sm',
   diamond: 'min-w-[200px] max-w-[240px] min-h-[130px]',
   parallelogram: 'min-w-[180px] max-w-[240px] min-h-[70px]',
 }
 
 const SHAPE_BORDER_CLASS = {
-  selected: 'border-sky-500 shadow-sky-200',
-  idle: 'border-neutral-200',
+  selected: 'border-violet-500 shadow-[0_0_16px_rgba(139,92,246,0.35)]',
+  idle: 'border-slate-700',
 }
 
 const SHAPE_POLYGON_POINTS: Partial<Record<StepShape, string>> = {
@@ -43,7 +43,7 @@ const SHAPE_CONTENT_PADDING: Record<StepShape, string> = {
   parallelogram: 'px-9 py-3',
 }
 
-const handleClass = '!h-2.5 !w-2.5 !border-2 !border-white !bg-sky-500'
+const handleClass = '!h-2.5 !w-2.5 !border-2 !border-slate-950 !bg-violet-400'
 
 function StepNode({ id, data, selected }: NodeProps<StepData>) {
   const mode = useFlowStore((s) => s.mode)
@@ -74,9 +74,7 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
               points={polygonPoints}
               vectorEffect="non-scaling-stroke"
               strokeWidth={2}
-              className={`fill-white ${
-                selected ? 'stroke-sky-500' : 'stroke-neutral-200'
-              }`}
+              className={`fill-slate-900 ${selected ? 'stroke-violet-500' : 'stroke-slate-700'}`}
             />
           </svg>
         )}
@@ -105,15 +103,13 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
         )}
 
         <div className={`relative z-10 ${SHAPE_CONTENT_PADDING[shape]}`}>
-          <div className="text-sm font-semibold text-neutral-800">
+          <div className="text-sm font-semibold text-slate-100">
             {data.title || '(無題のステップ)'}
           </div>
           {data.manual ? (
-            <div className="mt-1 line-clamp-2 text-xs text-neutral-400">
-              {data.manual}
-            </div>
+            <div className="mt-1 line-clamp-2 text-xs text-slate-500">{data.manual}</div>
           ) : (
-            <div className="mt-1 text-xs italic text-neutral-300">マニュアル未設定</div>
+            <div className="mt-1 text-xs italic text-slate-600">マニュアル未設定</div>
           )}
         </div>
 
@@ -132,7 +128,7 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
                 e.stopPropagation()
                 setShapeMenuOpen((v) => !v)
               }}
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs text-neutral-400 opacity-0 shadow-md ring-1 ring-neutral-200 transition-opacity hover:text-sky-500 group-hover:opacity-100"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-xs text-slate-400 opacity-0 shadow-md ring-1 ring-white/10 transition-opacity hover:text-violet-300 group-hover:opacity-100"
             >
               ⬡
             </button>
@@ -140,7 +136,7 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
               ref={shapeMenuRef}
               anchorRef={shapeButtonRef}
               open={shapeMenuOpen}
-              className="w-40 rounded-xl bg-white p-1 shadow-lg ring-1 ring-neutral-200"
+              className="w-40 rounded-xl bg-slate-900 p-1 shadow-lg ring-1 ring-white/10"
             >
               {(Object.keys(SHAPE_LABELS) as StepShape[]).map((s) => (
                 <button
@@ -151,8 +147,8 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
                     updateStep(id, { shape: s })
                     setShapeMenuOpen(false)
                   }}
-                  className={`flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left text-xs hover:bg-sky-50 ${
-                    shape === s ? 'text-sky-600' : 'text-neutral-500'
+                  className={`flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left text-xs hover:bg-violet-500/10 ${
+                    shape === s ? 'text-violet-300' : 'text-slate-400'
                   }`}
                 >
                   <span>{SHAPE_ICONS[s]}</span>
@@ -170,7 +166,7 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
               e.stopPropagation()
               addConnectedStep(id)
             }}
-            className="absolute left-1/2 top-full z-10 flex h-6 w-6 -translate-x-1/2 translate-y-2 items-center justify-center rounded-full bg-sky-500 text-sm font-bold text-white opacity-0 shadow-md transition-opacity hover:bg-sky-600 group-hover:opacity-100"
+            className="absolute left-1/2 top-full z-10 flex h-6 w-6 -translate-x-1/2 translate-y-2 items-center justify-center rounded-full bg-violet-500 text-sm font-bold text-white opacity-0 shadow-md transition-opacity hover:bg-violet-400 group-hover:opacity-100"
           >
             +
           </button>

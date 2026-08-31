@@ -5,6 +5,7 @@ import {
   saveDocToDrive,
   type DriveFileSummary,
 } from '../lib/googleDrive'
+import { useDriveAutoSave } from '../lib/useDriveAutoSave'
 import { useFlowStore } from '../store'
 
 export default function GoogleDriveMenu() {
@@ -57,48 +58,59 @@ export default function GoogleDriveMenu() {
     }
   }
 
+  useDriveAutoSave(Boolean(doc.driveFileId), doc, handleSave)
+
   return (
     <div className="relative flex items-center gap-2">
+      {doc.driveFileId && (
+        <span
+          className="flex items-center gap-1 rounded-full bg-cyan-400/10 px-2.5 py-1 text-[10px] font-medium text-cyan-300"
+          title="変更すると自動的にGoogleドライブへ保存されます"
+        >
+          <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+          自動保存オン
+        </span>
+      )}
       <button
         type="button"
         onClick={handleSave}
-        className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100"
+        className="rounded-full px-3 py-1.5 text-xs text-slate-400 hover:bg-white/5"
       >
         Driveに保存
       </button>
       <button
         type="button"
         onClick={handleOpenPicker}
-        className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100"
+        className="rounded-full px-3 py-1.5 text-xs text-slate-400 hover:bg-white/5"
       >
         Driveから開く
       </button>
 
       {status && (
-        <div className="absolute right-0 top-full z-20 mt-1 whitespace-nowrap rounded-full bg-neutral-800/90 px-3 py-1 text-xs text-white shadow-md">
+        <div className="absolute right-0 top-full z-20 mt-1 whitespace-nowrap rounded-full bg-slate-800/95 px-3 py-1 text-xs text-slate-100 shadow-md ring-1 ring-white/10">
           {status}
         </div>
       )}
 
       {pickerOpen && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-neutral-900/30 backdrop-blur-sm">
-          <div className="max-h-[70vh] w-96 overflow-y-auto rounded-2xl bg-white p-4 shadow-xl">
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm">
+          <div className="max-h-[70vh] w-96 overflow-y-auto rounded-2xl bg-slate-900 p-4 shadow-xl ring-1 ring-white/10">
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-neutral-800">
+              <h3 className="text-sm font-semibold text-slate-100">
                 Googleドライブのフローを開く
               </h3>
               <button
                 type="button"
                 onClick={() => setPickerOpen(false)}
-                className="flex h-6 w-6 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+                className="flex h-6 w-6 items-center justify-center rounded-full text-slate-500 hover:bg-white/5 hover:text-slate-300"
               >
                 ×
               </button>
             </div>
             {loadingList ? (
-              <p className="text-sm text-neutral-400">読み込み中…</p>
+              <p className="text-sm text-slate-500">読み込み中…</p>
             ) : files.length === 0 ? (
-              <p className="text-sm text-neutral-400">
+              <p className="text-sm text-slate-500">
                 保存されたフローが見つかりません。まず「Driveに保存」で保存してください。
               </p>
             ) : (
@@ -108,10 +120,10 @@ export default function GoogleDriveMenu() {
                     <button
                       type="button"
                       onClick={() => handlePick(f)}
-                      className="w-full rounded-xl px-2 py-1.5 text-left text-sm text-neutral-700 hover:bg-sky-50"
+                      className="w-full rounded-xl px-2 py-1.5 text-left text-sm text-slate-300 hover:bg-violet-500/10"
                     >
                       <div className="truncate font-medium">{f.name}</div>
-                      <div className="text-xs text-neutral-400">
+                      <div className="text-xs text-slate-500">
                         {new Date(f.modifiedTime).toLocaleString('ja-JP')}
                       </div>
                     </button>

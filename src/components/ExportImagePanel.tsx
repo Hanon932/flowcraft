@@ -41,12 +41,12 @@ export default function ExportImagePanel({
 
   return (
     <Panel position="top-right" className="flex flex-col items-end gap-1.5">
-      <div className="flex gap-1.5 rounded-full bg-white/90 p-1 shadow-md ring-1 ring-neutral-100 backdrop-blur">
+      <div className="flex gap-1.5 rounded-full bg-slate-900/90 p-1 shadow-md ring-1 ring-white/10 backdrop-blur">
         <button
           type="button"
           onClick={handleCopyImage}
           title="画像としてクリップボードにコピー（Excelなどに貼り付け可）"
-          className="rounded-full px-3 py-1 text-xs text-neutral-500 hover:bg-sky-50 hover:text-sky-600"
+          className="rounded-full px-3 py-1 text-xs text-slate-400 hover:bg-violet-500/10 hover:text-violet-300"
         >
           画像をコピー
         </button>
@@ -54,13 +54,13 @@ export default function ExportImagePanel({
           type="button"
           onClick={handleDownloadImage}
           title="PNG画像として保存"
-          className="rounded-full px-3 py-1 text-xs text-neutral-500 hover:bg-sky-50 hover:text-sky-600"
+          className="rounded-full px-3 py-1 text-xs text-slate-400 hover:bg-violet-500/10 hover:text-violet-300"
         >
           画像を保存
         </button>
       </div>
       {status && (
-        <div className="rounded-full bg-neutral-800/90 px-3 py-1 text-xs text-white shadow-md">
+        <div className="rounded-full bg-slate-800/95 px-3 py-1 text-xs text-slate-100 shadow-md ring-1 ring-white/10">
           {status}
         </div>
       )}

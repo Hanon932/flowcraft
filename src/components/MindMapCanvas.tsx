@@ -67,7 +67,7 @@ export default function MindMapCanvas() {
   }
 
   return (
-    <div className="h-full w-full bg-neutral-50" onKeyDown={handleKeyDown}>
+    <div className="h-full w-full" onKeyDown={handleKeyDown}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -84,7 +84,7 @@ export default function MindMapCanvas() {
       >
         {mode === 'edit' && (
           <Panel position="top-left">
-            <div className="rounded-full bg-white/90 px-3 py-1 text-xs text-neutral-400 shadow-sm ring-1 ring-neutral-100 backdrop-blur">
+            <div className="rounded-full bg-slate-900/90 px-3 py-1 text-xs text-slate-400 shadow-sm ring-1 ring-white/10 backdrop-blur">
               トピックを選んで Tab キーで子トピックを追加・Delete キーで削除・ダブルクリックで編集
             </div>
           </Panel>

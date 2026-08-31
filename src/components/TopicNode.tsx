@@ -4,7 +4,7 @@ import { useFlowStore } from '../store'
 import type { MindMapNodeData } from '../types'
 
 const handleClass =
-  'h-2 w-2 !border-2 !border-white !bg-sky-500 opacity-0 transition-opacity group-hover:opacity-100'
+  'h-2 w-2 !border-2 !border-slate-950 !bg-violet-400 opacity-0 transition-opacity group-hover:opacity-100'
 
 const HANDLE_SIDES: { position: Position; id: string }[] = [
   { position: Position.Top, id: 'top' },
@@ -20,7 +20,7 @@ function TopicNode({ id, data, selected }: NodeProps<MindMapNodeData>) {
   const [editing, setEditing] = useState(false)
   const isEdit = mode === 'edit'
   const isRoot = Boolean(data.root)
-  const color = data.color ?? '#0ea5e9'
+  const color = data.color ?? '#38bdf8'
   const hasChildren = Boolean(data.hasChildren)
   const hiddenCount = typeof data.hiddenCount === 'number' ? data.hiddenCount : 0
 
@@ -64,8 +64,8 @@ function TopicNode({ id, data, selected }: NodeProps<MindMapNodeData>) {
             if (e.key === 'Enter' || e.key === 'Escape') e.currentTarget.blur()
           }}
           style={{ minWidth: 120 }}
-          className={`rounded-full px-4 py-2 text-sm font-medium shadow-sm outline-none ring-2 ring-sky-400 ${
-            isRoot ? 'bg-sky-500 text-white' : 'bg-white text-neutral-800'
+          className={`rounded-full px-4 py-2 text-sm font-medium shadow-sm outline-none ring-2 ring-violet-400 ${
+            isRoot ? 'bg-violet-500 text-white' : 'bg-slate-900 text-slate-100'
           }`}
         />
       ) : (
@@ -75,8 +75,8 @@ function TopicNode({ id, data, selected }: NodeProps<MindMapNodeData>) {
             setEditing(true)
           }}
           className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium shadow-sm transition-shadow ${
-            isRoot ? 'bg-sky-500 text-white' : 'bg-white text-neutral-700'
-          } ${selected ? 'ring-2 ring-sky-400' : !isRoot ? 'border-2' : ''}`}
+            isRoot ? 'bg-violet-500 text-white' : 'bg-slate-900 text-slate-200'
+          } ${selected ? 'ring-2 ring-violet-400' : !isRoot ? 'border-2' : ''}`}
           style={!isRoot && !selected ? { borderColor: color } : undefined}
         >
           {data.text || '（無題）'}
@@ -91,7 +91,7 @@ function TopicNode({ id, data, selected }: NodeProps<MindMapNodeData>) {
             e.stopPropagation()
             deleteStep(id)
           }}
-          className="absolute -left-2 -top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs text-neutral-400 opacity-0 shadow-md ring-1 ring-neutral-200 transition-opacity hover:text-red-500 group-hover:opacity-100"
+          className="absolute -left-2 -top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-xs text-slate-400 opacity-0 shadow-md ring-1 ring-white/10 transition-opacity hover:text-rose-400 group-hover:opacity-100"
         >
           ×
         </button>
@@ -107,8 +107,8 @@ function TopicNode({ id, data, selected }: NodeProps<MindMapNodeData>) {
           }}
           className={`absolute -bottom-2 -right-2 z-10 flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-bold shadow-md ring-1 transition-opacity ${
             data.collapsed
-              ? 'bg-sky-500 text-white ring-sky-500'
-              : 'bg-white text-neutral-400 opacity-0 ring-neutral-200 hover:text-sky-500 group-hover:opacity-100'
+              ? 'bg-violet-500 text-white ring-violet-500'
+              : 'bg-slate-800 text-slate-400 opacity-0 ring-white/10 hover:text-violet-300 group-hover:opacity-100'
           }`}
         >
           {data.collapsed ? `+${hiddenCount}` : '−'}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { findReflectionsFile, loadReflectionsFromDrive, saveReflectionsToDrive } from '../lib/googleDrive'
+import { useDriveAutoSave } from '../lib/useDriveAutoSave'
 import { useReflectionStore } from '../store'
 import MonthlyGoalPanel from './MonthlyGoalPanel'
 import ReflectionCalendar from './ReflectionCalendar'
@@ -103,9 +104,11 @@ export default function ReflectionPanel() {
     }
   }
 
+  useDriveAutoSave(Boolean(driveFileId), entries, handleDriveSave)
+
   return (
     <div className="mx-auto flex h-full w-full max-w-3xl min-h-0 flex-col p-6">
-      <div className="mb-4 flex gap-1 rounded-full bg-neutral-100 p-0.5 text-xs w-fit">
+      <div className="mb-4 flex gap-1 rounded-full bg-slate-900/70 p-0.5 text-xs w-fit ring-1 ring-white/5">
         {TABS.map((t) => (
           <button
             key={t.key}
@@ -113,8 +116,8 @@ export default function ReflectionPanel() {
             onClick={() => setTab(t.key)}
             className={`rounded-full px-3 py-1.5 transition-colors ${
               tab === t.key
-                ? 'bg-white font-medium text-sky-600 shadow-sm'
-                : 'text-neutral-400 hover:text-neutral-600'
+                ? 'bg-violet-500 font-medium text-white shadow-sm'
+                : 'text-slate-500 hover:text-slate-300'
             }`}
           >
             {t.label}
@@ -131,18 +134,18 @@ export default function ReflectionPanel() {
               <button
                 type="button"
                 onClick={() => selectDate(addDays(selectedDate, -1))}
-                className="flex h-7 w-7 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100"
+                className="flex h-7 w-7 items-center justify-center rounded-full text-slate-400 hover:bg-white/5"
                 title="前の日"
               >
                 ‹
               </button>
-              <span className="w-44 text-center text-sm font-semibold text-neutral-800">
+              <span className="w-44 text-center text-sm font-semibold text-slate-100">
                 {formatDateLabel(selectedDate)}
               </span>
               <button
                 type="button"
                 onClick={() => selectDate(addDays(selectedDate, 1))}
-                className="flex h-7 w-7 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100"
+                className="flex h-7 w-7 items-center justify-center rounded-full text-slate-400 hover:bg-white/5"
                 title="次の日"
               >
                 ›
@@ -151,7 +154,7 @@ export default function ReflectionPanel() {
                 <button
                   type="button"
                   onClick={() => selectDate(today)}
-                  className="ml-1 rounded-full px-3 py-1.5 text-xs text-sky-600 hover:bg-sky-50"
+                  className="ml-1 rounded-full px-3 py-1.5 text-xs text-cyan-300 hover:bg-cyan-400/10"
                 >
                   今日に戻る
                 </button>
@@ -159,11 +162,20 @@ export default function ReflectionPanel() {
             </div>
 
             <div className="relative flex items-center gap-1">
+              {driveFileId && (
+                <span
+                  className="flex items-center gap-1 rounded-full bg-cyan-400/10 px-2.5 py-1 text-[10px] font-medium text-cyan-300"
+                  title="変更すると自動的にGoogleドライブへ保存されます"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+                  自動保存オン
+                </span>
+              )}
               <button
                 type="button"
                 onClick={handleDriveSave}
                 disabled={driveBusy}
-                className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100 disabled:opacity-50"
+                className="rounded-full px-3 py-1.5 text-xs text-slate-400 hover:bg-white/5 disabled:opacity-50"
               >
                 Driveに保存
               </button>
@@ -171,12 +183,12 @@ export default function ReflectionPanel() {
                 type="button"
                 onClick={handleDriveLoad}
                 disabled={driveBusy}
-                className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100 disabled:opacity-50"
+                className="rounded-full px-3 py-1.5 text-xs text-slate-400 hover:bg-white/5 disabled:opacity-50"
               >
                 Driveから読み込む
               </button>
               {driveStatus && (
-                <div className="absolute right-0 top-full z-20 mt-1 whitespace-nowrap rounded-full bg-neutral-800/90 px-3 py-1 text-xs text-white shadow-md">
+                <div className="absolute right-0 top-full z-20 mt-1 whitespace-nowrap rounded-full bg-slate-800/95 px-3 py-1 text-xs text-slate-100 shadow-md ring-1 ring-white/10">
                   {driveStatus}
                 </div>
               )}
@@ -187,9 +199,9 @@ export default function ReflectionPanel() {
             <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-y-auto">
               <div className="flex flex-col">
                 <div className="mb-1.5 flex items-center justify-between">
-                  <label className="text-xs font-medium text-neutral-400">反省点</label>
+                  <label className="text-xs font-medium text-slate-500">反省点</label>
                   {entry && (entry.problem || entry.improvement) && (
-                    <span className="text-[11px] text-neutral-300">
+                    <span className="text-[11px] text-slate-600">
                       {new Date(entry.updatedAt).toLocaleTimeString('ja-JP', {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -202,21 +214,21 @@ export default function ReflectionPanel() {
                   value={entry?.problem ?? ''}
                   onChange={(e) => upsertEntry(selectedDate, { problem: e.target.value })}
                   placeholder="うまくいかなかったこと、気づいた課題を書きましょう"
-                  className="h-40 w-full resize-none rounded-xl bg-neutral-100 p-3 text-sm leading-relaxed outline-none ring-1 ring-transparent focus:bg-white focus:ring-sky-400"
+                  className="h-40 w-full resize-none rounded-xl bg-slate-900/70 p-3 text-sm leading-relaxed text-slate-100 outline-none ring-1 ring-white/5 focus:bg-slate-900 focus:ring-violet-500"
                 />
               </div>
               <div className="flex flex-col">
-                <label className="mb-1.5 text-xs font-medium text-neutral-400">改善点</label>
+                <label className="mb-1.5 text-xs font-medium text-slate-500">改善点</label>
                 <textarea
                   value={entry?.improvement ?? ''}
                   onChange={(e) => upsertEntry(selectedDate, { improvement: e.target.value })}
                   placeholder="次はどう変えるか、具体的なアクションを書きましょう"
-                  className="h-40 w-full resize-none rounded-xl bg-neutral-100 p-3 text-sm leading-relaxed outline-none ring-1 ring-transparent focus:bg-white focus:ring-sky-400"
+                  className="h-40 w-full resize-none rounded-xl bg-slate-900/70 p-3 text-sm leading-relaxed text-slate-100 outline-none ring-1 ring-white/5 focus:bg-slate-900 focus:ring-violet-500"
                 />
               </div>
             </div>
 
-            <div className="flex w-64 shrink-0 flex-col overflow-y-auto border-l border-neutral-100 pl-4">
+            <div className="flex w-64 shrink-0 flex-col overflow-y-auto border-l border-white/5 pl-4">
               <ReflectionCalendar
                 year={calendarMonth.year}
                 month={calendarMonth.month}
@@ -227,7 +239,7 @@ export default function ReflectionPanel() {
                 onChangeMonth={(year, month) => setCalendarMonth({ year, month })}
               />
 
-              <span className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-neutral-400">
+              <span className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 履歴
               </span>
               <div className="flex-1 overflow-y-auto">
@@ -237,8 +249,8 @@ export default function ReflectionPanel() {
                     onClick={() => selectDate(e.date)}
                     className={`group mb-1 cursor-pointer rounded-xl px-3 py-2 text-xs transition-colors ${
                       e.date === selectedDate
-                        ? 'bg-sky-50 text-sky-600'
-                        : 'text-neutral-500 hover:bg-neutral-100'
+                        ? 'bg-violet-500/15 text-violet-300'
+                        : 'text-slate-400 hover:bg-white/5'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -251,17 +263,17 @@ export default function ReflectionPanel() {
                             deleteEntry(e.id)
                           }
                         }}
-                        className="ml-1 hidden shrink-0 rounded-full px-1.5 text-neutral-300 hover:bg-red-50 hover:text-red-500 group-hover:block"
+                        className="ml-1 hidden shrink-0 rounded-full px-1.5 text-slate-600 hover:bg-rose-500/10 hover:text-rose-400 group-hover:block"
                         title="削除"
                       >
                         ×
                       </button>
                     </div>
-                    <p className="mt-0.5 truncate text-neutral-400">{e.problem || e.improvement}</p>
+                    <p className="mt-0.5 truncate text-slate-500">{e.problem || e.improvement}</p>
                   </div>
                 ))}
                 {history.length === 0 && (
-                  <p className="px-1 py-4 text-center text-xs text-neutral-300">
+                  <p className="px-1 py-4 text-center text-xs text-slate-600">
                     まだ記録がありません。
                   </p>
                 )}
