@@ -1,4 +1,4 @@
-import type { FlowDoc } from '../types'
+import type { FlowDoc, ReflectionEntry } from '../types'
 
 const SCOPE = 'https://www.googleapis.com/auth/drive.file'
 const DRIVE_FILES_URL = 'https://www.googleapis.com/drive/v3/files'
@@ -88,23 +88,22 @@ async function driveFetch(url: string, token: string, init: RequestInit = {}): P
   return res
 }
 
-export async function saveDocToDrive(doc: FlowDoc): Promise<string> {
+async function uploadJson(name: string, data: unknown, existingFileId?: string): Promise<string> {
   const token = await requestAccessToken()
-  const metadata = { name: `${doc.name}.flowcraft.json`, mimeType: 'application/json' }
+  const metadata = { name, mimeType: 'application/json' }
   const boundary = 'flowcraft-boundary-' + Date.now()
-  const { driveFileId: _driveFileId, ...docWithoutDriveId } = doc
   const body =
     `--${boundary}\r\n` +
     'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
     `${JSON.stringify(metadata)}\r\n` +
     `--${boundary}\r\n` +
     'Content-Type: application/json\r\n\r\n' +
-    `${JSON.stringify(docWithoutDriveId)}\r\n` +
+    `${JSON.stringify(data)}\r\n` +
     `--${boundary}--`
 
-  const isUpdate = Boolean(doc.driveFileId)
+  const isUpdate = Boolean(existingFileId)
   const url = isUpdate
-    ? `${UPLOAD_URL}/${doc.driveFileId}?uploadType=multipart`
+    ? `${UPLOAD_URL}/${existingFileId}?uploadType=multipart`
     : `${UPLOAD_URL}?uploadType=multipart`
 
   const res = await driveFetch(url, token, {
@@ -114,6 +113,11 @@ export async function saveDocToDrive(doc: FlowDoc): Promise<string> {
   })
   const json = (await res.json()) as { id: string }
   return json.id
+}
+
+export async function saveDocToDrive(doc: FlowDoc): Promise<string> {
+  const { driveFileId, ...docWithoutDriveId } = doc
+  return uploadJson(`${doc.name}.flowcraft.json`, docWithoutDriveId, driveFileId)
 }
 
 export async function listDriveFiles(): Promise<DriveFileSummary[]> {
@@ -134,4 +138,32 @@ export async function loadDriveFile(fileId: string): Promise<FlowDoc> {
   const token = await requestAccessToken()
   const res = await driveFetch(`${DRIVE_FILES_URL}/${fileId}?alt=media`, token)
   return (await res.json()) as FlowDoc
+}
+
+const REFLECTIONS_FILE_NAME = 'flowcraft-reflections.json'
+
+export async function saveReflectionsToDrive(
+  entries: ReflectionEntry[],
+  existingFileId?: string,
+): Promise<string> {
+  return uploadJson(REFLECTIONS_FILE_NAME, entries, existingFileId)
+}
+
+export async function findReflectionsFile(): Promise<DriveFileSummary | null> {
+  const token = await requestAccessToken()
+  const params = new URLSearchParams({
+    q: `name='${REFLECTIONS_FILE_NAME}' and trashed=false`,
+    fields: 'files(id,name,modifiedTime)',
+    spaces: 'drive',
+    pageSize: '1',
+  })
+  const res = await driveFetch(`${DRIVE_FILES_URL}?${params.toString()}`, token)
+  const json = (await res.json()) as { files: DriveFileSummary[] }
+  return json.files[0] ?? null
+}
+
+export async function loadReflectionsFromDrive(fileId: string): Promise<ReflectionEntry[]> {
+  const token = await requestAccessToken()
+  const res = await driveFetch(`${DRIVE_FILES_URL}/${fileId}?alt=media`, token)
+  return (await res.json()) as ReflectionEntry[]
 }

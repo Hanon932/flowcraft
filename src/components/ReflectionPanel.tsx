@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { findReflectionsFile, loadReflectionsFromDrive, saveReflectionsToDrive } from '../lib/googleDrive'
 import { useReflectionStore } from '../store'
 
 function toDateKey(d: Date): string {
@@ -26,12 +27,56 @@ export default function ReflectionPanel() {
   const entries = useReflectionStore((s) => s.entries)
   const upsertEntry = useReflectionStore((s) => s.upsertEntry)
   const deleteEntry = useReflectionStore((s) => s.deleteEntry)
+  const driveFileId = useReflectionStore((s) => s.driveFileId)
+  const setDriveFileId = useReflectionStore((s) => s.setDriveFileId)
+  const mergeFromDrive = useReflectionStore((s) => s.mergeFromDrive)
+  const [driveStatus, setDriveStatus] = useState<string | null>(null)
+  const [driveBusy, setDriveBusy] = useState(false)
 
   const entry = entries.find((e) => e.date === selectedDate)
   const today = toDateKey(new Date())
   const history = [...entries]
     .filter((e) => e.problem.trim() || e.improvement.trim())
     .sort((a, b) => (a.date < b.date ? 1 : -1))
+
+  function flashDrive(message: string) {
+    setDriveStatus(message)
+    setTimeout(() => setDriveStatus(null), 4000)
+  }
+
+  async function handleDriveSave() {
+    setDriveBusy(true)
+    flashDrive('Googleドライブに保存中…')
+    try {
+      const fileId = await saveReflectionsToDrive(useReflectionStore.getState().entries, driveFileId)
+      setDriveFileId(fileId)
+      flashDrive('Googleドライブに保存しました')
+    } catch (err) {
+      flashDrive(err instanceof Error ? err.message : '保存に失敗しました')
+    } finally {
+      setDriveBusy(false)
+    }
+  }
+
+  async function handleDriveLoad() {
+    setDriveBusy(true)
+    flashDrive('Googleドライブから読み込み中…')
+    try {
+      const file = driveFileId ? { id: driveFileId } : await findReflectionsFile()
+      if (!file) {
+        flashDrive('Googleドライブに保存された振り返りが見つかりません。先に「Driveに保存」してください。')
+        return
+      }
+      const remoteEntries = await loadReflectionsFromDrive(file.id)
+      mergeFromDrive(remoteEntries)
+      setDriveFileId(file.id)
+      flashDrive('Googleドライブから読み込みました')
+    } catch (err) {
+      flashDrive(err instanceof Error ? err.message : '読み込みに失敗しました')
+    } finally {
+      setDriveBusy(false)
+    }
+  }
 
   return (
     <div className="mx-auto flex h-full w-full max-w-3xl min-h-0 flex-col p-6">
@@ -56,22 +101,57 @@ export default function ReflectionPanel() {
           >
             ›
           </button>
+          {selectedDate !== today && (
+            <button
+              type="button"
+              onClick={() => setSelectedDate(today)}
+              className="ml-1 rounded-full px-3 py-1.5 text-xs text-sky-600 hover:bg-sky-50"
+            >
+              今日に戻る
+            </button>
+          )}
         </div>
-        {selectedDate !== today && (
+
+        <div className="relative flex items-center gap-1">
           <button
             type="button"
-            onClick={() => setSelectedDate(today)}
-            className="rounded-full px-3 py-1.5 text-xs text-sky-600 hover:bg-sky-50"
+            onClick={handleDriveSave}
+            disabled={driveBusy}
+            className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100 disabled:opacity-50"
           >
-            今日に戻る
+            Driveに保存
           </button>
-        )}
+          <button
+            type="button"
+            onClick={handleDriveLoad}
+            disabled={driveBusy}
+            className="rounded-full px-3 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100 disabled:opacity-50"
+          >
+            Driveから読み込む
+          </button>
+          {driveStatus && (
+            <div className="absolute right-0 top-full z-20 mt-1 whitespace-nowrap rounded-full bg-neutral-800/90 px-3 py-1 text-xs text-white shadow-md">
+              {driveStatus}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex min-h-0 flex-1 gap-6">
         <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-y-auto">
           <div className="flex flex-col">
-            <label className="mb-1.5 text-xs font-medium text-neutral-400">反省点</label>
+            <div className="mb-1.5 flex items-center justify-between">
+              <label className="text-xs font-medium text-neutral-400">反省点</label>
+              {entry && (entry.problem || entry.improvement) && (
+                <span className="text-[11px] text-neutral-300">
+                  {new Date(entry.updatedAt).toLocaleTimeString('ja-JP', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}{' '}
+                  に自動保存済み
+                </span>
+              )}
+            </div>
             <textarea
               value={entry?.problem ?? ''}
               onChange={(e) => upsertEntry(selectedDate, { problem: e.target.value })}

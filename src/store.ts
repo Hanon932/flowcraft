@@ -472,15 +472,19 @@ export const useUiStore = create<UiStore>((set) => ({
 
 interface ReflectionStore {
   entries: ReflectionEntry[]
+  driveFileId?: string
   getEntry: (date: string) => ReflectionEntry | undefined
   upsertEntry: (date: string, patch: Partial<Pick<ReflectionEntry, 'problem' | 'improvement'>>) => void
   deleteEntry: (id: string) => void
+  setDriveFileId: (driveFileId: string) => void
+  mergeFromDrive: (remoteEntries: ReflectionEntry[]) => void
 }
 
 export const useReflectionStore = create<ReflectionStore>()(
   persist(
     (set, get) => ({
       entries: [],
+      driveFileId: undefined,
       getEntry: (date) => get().entries.find((e) => e.date === date),
       upsertEntry: (date, patch) => {
         set((s) => {
@@ -505,6 +509,21 @@ export const useReflectionStore = create<ReflectionStore>()(
       },
       deleteEntry: (id) => {
         set((s) => ({ entries: s.entries.filter((e) => e.id !== id) }))
+      },
+      setDriveFileId: (driveFileId) => set({ driveFileId }),
+      mergeFromDrive: (remoteEntries) => {
+        set((s) => {
+          const merged = [...s.entries]
+          for (const remote of remoteEntries) {
+            const localIndex = merged.findIndex((e) => e.date === remote.date)
+            if (localIndex === -1) {
+              merged.push(remote)
+            } else if (remote.updatedAt > merged[localIndex].updatedAt) {
+              merged[localIndex] = remote
+            }
+          }
+          return { entries: merged }
+        })
       },
     }),
     { name: 'flowcraft-reflections' },
