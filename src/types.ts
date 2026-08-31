@@ -53,3 +53,13 @@ export interface ReflectionEntry {
   improvement: string
   updatedAt: number
 }
+
+export interface MonthlyGoal {
+  id: string
+  month: string
+  plan: string
+  doPlan: string
+  check: string
+  act: string
+  updatedAt: number
+}

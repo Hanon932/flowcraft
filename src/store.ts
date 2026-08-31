@@ -25,6 +25,7 @@ import type {
   FlowDoc,
   FreeShape,
   MindMapNodeData,
+  MonthlyGoal,
   ReflectionEntry,
   StepData,
 } from './types'
@@ -527,5 +528,66 @@ export const useReflectionStore = create<ReflectionStore>()(
       },
     }),
     { name: 'flowcraft-reflections' },
+  ),
+)
+
+interface GoalStore {
+  goals: MonthlyGoal[]
+  driveFileId?: string
+  getGoal: (month: string) => MonthlyGoal | undefined
+  upsertGoal: (
+    month: string,
+    patch: Partial<Pick<MonthlyGoal, 'plan' | 'doPlan' | 'check' | 'act'>>,
+  ) => void
+  setDriveFileId: (driveFileId: string) => void
+  mergeFromDrive: (remoteGoals: MonthlyGoal[]) => void
+}
+
+export const useGoalStore = create<GoalStore>()(
+  persist(
+    (set, get) => ({
+      goals: [],
+      driveFileId: undefined,
+      getGoal: (month) => get().goals.find((g) => g.month === month),
+      upsertGoal: (month, patch) => {
+        set((s) => {
+          const existing = s.goals.find((g) => g.month === month)
+          if (existing) {
+            return {
+              goals: s.goals.map((g) =>
+                g.id === existing.id ? { ...g, ...patch, updatedAt: Date.now() } : g,
+              ),
+            }
+          }
+          const goal: MonthlyGoal = {
+            id: nanoid(8),
+            month,
+            plan: '',
+            doPlan: '',
+            check: '',
+            act: '',
+            ...patch,
+            updatedAt: Date.now(),
+          }
+          return { goals: [...s.goals, goal] }
+        })
+      },
+      setDriveFileId: (driveFileId) => set({ driveFileId }),
+      mergeFromDrive: (remoteGoals) => {
+        set((s) => {
+          const merged = [...s.goals]
+          for (const remote of remoteGoals) {
+            const localIndex = merged.findIndex((g) => g.month === remote.month)
+            if (localIndex === -1) {
+              merged.push(remote)
+            } else if (remote.updatedAt > merged[localIndex].updatedAt) {
+              merged[localIndex] = remote
+            }
+          }
+          return { goals: merged }
+        })
+      },
+    }),
+    { name: 'flowcraft-goals' },
   ),
 )
