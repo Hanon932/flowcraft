@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { Handle, Position, type NodeProps } from 'reactflow'
 import { useFlowStore } from '../store'
 import type { MindMapNodeData } from '../types'
@@ -13,12 +13,20 @@ const HANDLE_SIDES: { position: Position; id: string }[] = [
   { position: Position.Left, id: 'left' },
 ]
 
+const MAX_TEXT_WIDTH = 220
+
+function autoResize(el: HTMLTextAreaElement) {
+  el.style.height = 'auto'
+  el.style.height = `${el.scrollHeight}px`
+}
+
 function TopicNode({ id, data, selected }: NodeProps<MindMapNodeData>) {
   const mode = useFlowStore((s) => s.mode)
   const updateStep = useFlowStore((s) => s.updateStep)
   const editRequestNodeId = useFlowStore((s) => s.editRequestNodeId)
   const clearEditRequest = useFlowStore((s) => s.clearEditRequest)
   const [editing, setEditing] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const isEdit = mode === 'edit'
   const isRoot = Boolean(data.root)
   const color = data.color ?? '#0071e3'
@@ -38,6 +46,10 @@ function TopicNode({ id, data, selected }: NodeProps<MindMapNodeData>) {
       clearEditRequest()
     }
   }, [editRequestNodeId, id, clearEditRequest])
+
+  useEffect(() => {
+    if (editing && textareaRef.current) autoResize(textareaRef.current)
+  }, [editing])
 
   return (
     <div className="group relative">
@@ -63,16 +75,26 @@ function TopicNode({ id, data, selected }: NodeProps<MindMapNodeData>) {
       ))}
 
       {editing ? (
-        <input
+        <textarea
+          ref={textareaRef}
           autoFocus
+          rows={1}
           value={data.text}
-          onChange={(e) => updateStep(id, { text: e.target.value })}
+          onChange={(e) => {
+            updateStep(id, { text: e.target.value })
+            autoResize(e.target)
+          }}
+          onFocus={(e) => e.target.select()}
           onBlur={() => setEditing(false)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === 'Escape') e.currentTarget.blur()
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              e.currentTarget.blur()
+            }
+            if (e.key === 'Escape') e.currentTarget.blur()
           }}
-          style={{ minWidth: 120 }}
-          className={`rounded-full px-4 py-2 text-sm font-medium shadow-sm outline-none ring-2 ring-[#0071e3] ${
+          style={{ width: MAX_TEXT_WIDTH }}
+          className={`resize-none overflow-hidden rounded-2xl px-4 py-2 text-center text-sm font-medium leading-snug shadow-sm outline-none ring-2 ring-[#0071e3] ${
             isRoot ? 'bg-[#0071e3] text-white' : 'bg-white text-[#1d1d1f]'
           }`}
         />
@@ -82,10 +104,13 @@ function TopicNode({ id, data, selected }: NodeProps<MindMapNodeData>) {
             if (!isEdit) return
             setEditing(true)
           }}
-          className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-shadow duration-200 ${
+          style={{
+            maxWidth: MAX_TEXT_WIDTH,
+            ...(!isRoot && !selected ? { borderColor: color } : undefined),
+          }}
+          className={`whitespace-pre-wrap break-words rounded-2xl px-4 py-2 text-center text-sm font-medium leading-snug shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-shadow duration-200 ${
             isRoot ? 'bg-[#0071e3] text-white' : 'bg-white text-[#1d1d1f]'
           } ${selected ? 'ring-2 ring-[#0071e3]' : !isRoot ? 'border-2' : ''}`}
-          style={!isRoot && !selected ? { borderColor: color } : undefined}
         >
           {data.text || '（無題）'}
         </div>
