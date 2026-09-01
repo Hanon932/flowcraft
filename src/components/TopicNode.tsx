@@ -43,6 +43,8 @@ function TopicNode({ id, data, selected }: NodeProps<MindMapNodeData>) {
   const mode = useFlowStore((s) => s.mode)
   const updateStep = useFlowStore((s) => s.updateStep)
   const deleteStep = useFlowStore((s) => s.deleteStep)
+  const editRequestNodeId = useFlowStore((s) => s.editRequestNodeId)
+  const clearEditRequest = useFlowStore((s) => s.clearEditRequest)
   const [editing, setEditing] = useState(false)
   const isEdit = mode === 'edit'
   const isRoot = Boolean(data.root)
@@ -59,6 +61,13 @@ function TopicNode({ id, data, selected }: NodeProps<MindMapNodeData>) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected])
+
+  useEffect(() => {
+    if (editRequestNodeId === id) {
+      setEditing(true)
+      clearEditRequest()
+    }
+  }, [editRequestNodeId, id, clearEditRequest])
 
   function cycleStatus() {
     const next = STATUS_ORDER[(STATUS_ORDER.indexOf(status) + 1) % STATUS_ORDER.length]

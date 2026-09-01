@@ -88,6 +88,7 @@ interface FlowStore {
   activeId: string
   selectedNodeId: string | null
   mode: 'edit' | 'view'
+  editRequestNodeId: string | null
 
   activeDoc: () => FlowDoc
   selectedNode: () => FlowDoc['nodes'][number] | undefined
@@ -95,6 +96,8 @@ interface FlowStore {
   setActiveId: (id: string) => void
   setMode: (mode: 'edit' | 'view') => void
   setSelectedNodeId: (id: string | null) => void
+  requestEditNode: (nodeId: string) => void
+  clearEditRequest: () => void
 
   createFlow: (kind: DocKind) => void
   createGoalRoadmap: (title: string) => string
@@ -105,6 +108,7 @@ interface FlowStore {
   addConnectedStep: (sourceId: string) => void
   applyFlowchartLayout: () => void
   addMindMapChild: (parentId: string) => void
+  addMindMapRoot: (position: { x: number; y: number }) => void
   applyMindMapLayout: (style: 'radial' | 'tree') => void
   addFreeShape: (shape: FreeShape) => void
   updateStep: (nodeId: string, data: Partial<StepData>) => void
@@ -128,6 +132,7 @@ export const useFlowStore = create<FlowStore>()(
       activeId: initialDoc.id,
       selectedNodeId: null,
       mode: 'edit',
+      editRequestNodeId: null,
 
       activeDoc: () => {
         const { docs, activeId } = get()
@@ -144,6 +149,8 @@ export const useFlowStore = create<FlowStore>()(
       setActiveId: (id) => set({ activeId: id, selectedNodeId: null }),
       setMode: (mode) => set({ mode, selectedNodeId: null }),
       setSelectedNodeId: (id) => set({ selectedNodeId: id }),
+      requestEditNode: (nodeId) => set({ editRequestNodeId: nodeId }),
+      clearEditRequest: () => set({ editRequestNodeId: null }),
 
       createFlow: (kind) => {
         const countOfKind = get().docs.filter((d) => (d.kind ?? 'flowchart') === kind).length
@@ -318,6 +325,29 @@ export const useFlowStore = create<FlowStore>()(
                       sourceHandle,
                       targetHandle,
                       style: { stroke: color, strokeWidth: 2 },
+                    },
+                  ],
+                  updatedAt: Date.now(),
+                }
+              : d,
+          ),
+          selectedNodeId: newId,
+        }))
+      },
+      addMindMapRoot: (position) => {
+        const newId = nanoid(6)
+        set((s) => ({
+          docs: s.docs.map((d) =>
+            d.id === s.activeId
+              ? {
+                  ...d,
+                  nodes: [
+                    ...d.nodes,
+                    {
+                      id: newId,
+                      type: 'topic',
+                      position,
+                      data: { text: '', root: true },
                     },
                   ],
                   updatedAt: Date.now(),

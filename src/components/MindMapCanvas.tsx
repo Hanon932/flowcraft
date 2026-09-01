@@ -1,7 +1,9 @@
-import { useMemo } from 'react'
-import ReactFlow, { Panel, type Node, type NodeTypes } from 'reactflow'
+import { useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import ReactFlow, { Panel, type Node, type NodeTypes, type ReactFlowInstance } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { computeCollapseVisibility } from '../lib/mindmapLayout'
+import { useClickOutside } from '../lib/useClickOutside'
 import { useFlowStore } from '../store'
 import type { MindMapNodeData } from '../types'
 import ExportImagePanel from './ExportImagePanel'
@@ -18,7 +20,19 @@ export default function MindMapCanvas() {
   const onConnect = useFlowStore((s) => s.onConnect)
   const setSelectedNodeId = useFlowStore((s) => s.setSelectedNodeId)
   const addMindMapChild = useFlowStore((s) => s.addMindMapChild)
+  const addMindMapRoot = useFlowStore((s) => s.addMindMapRoot)
   const deleteStep = useFlowStore((s) => s.deleteStep)
+  const requestEditNode = useFlowStore((s) => s.requestEditNode)
+
+  const rfInstance = useRef<ReactFlowInstance | null>(null)
+  const [contextMenu, setContextMenu] = useState<{
+    screenX: number
+    screenY: number
+    flowX: number
+    flowY: number
+  } | null>(null)
+  const contextMenuRef = useRef<HTMLDivElement>(null)
+  useClickOutside(Boolean(contextMenu), () => setContextMenu(null), [contextMenuRef])
 
   const { hiddenIds, childCounts, descendantCounts } = useMemo(
     () => computeCollapseVisibility(doc.nodes, doc.edges),
@@ -66,6 +80,12 @@ export default function MindMapCanvas() {
       return
     }
 
+    if (e.key === 'F2') {
+      e.preventDefault()
+      requestEditNode(selectedNodeId)
+      return
+    }
+
     if (e.key === 'Delete' || e.key === 'Backspace') {
       const node = doc.nodes.find((n) => n.id === selectedNodeId)
       const isRoot = Boolean((node?.data as MindMapNodeData | undefined)?.root)
@@ -75,12 +95,25 @@ export default function MindMapCanvas() {
     }
   }
 
+  function handlePaneContextMenu(e: React.MouseEvent) {
+    e.preventDefault()
+    if (mode !== 'edit') return
+    const flowPos = rfInstance.current?.screenToFlowPosition({ x: e.clientX, y: e.clientY }) ?? {
+      x: 0,
+      y: 0,
+    }
+    setContextMenu({ screenX: e.clientX, screenY: e.clientY, flowX: flowPos.x, flowY: flowPos.y })
+  }
+
   return (
     <div className="h-full w-full bg-[#f5f5f7]" onKeyDown={handleKeyDown}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        onInit={(instance) => {
+          rfInstance.current = instance
+        }}
         onNodesChange={mode === 'edit' ? onNodesChange : undefined}
         onEdgesChange={mode === 'edit' ? onEdgesChange : undefined}
         onConnect={mode === 'edit' ? onConnect : undefined}
@@ -88,18 +121,44 @@ export default function MindMapCanvas() {
         nodesConnectable={mode === 'edit'}
         elementsSelectable
         onNodeClick={(_, node) => setSelectedNodeId(node.id)}
-        onPaneClick={() => setSelectedNodeId(null)}
+        onPaneClick={() => {
+          setSelectedNodeId(null)
+          setContextMenu(null)
+        }}
+        onPaneContextMenu={handlePaneContextMenu}
         fitView
       >
         {mode === 'edit' && (
           <Panel position="top-left">
             <div className="rounded-full bg-white/90 px-3 py-1 text-xs text-[#86868b] shadow-sm ring-1 ring-[#d2d2d7] backdrop-blur">
-              トピックを選んで Tab キーで子トピックを追加・Delete キーで削除・ダブルクリックで編集
+              Tab キーで子トピック追加・F2キーで編集・Delete キーで削除・右クリックで中心テーマ追加
             </div>
           </Panel>
         )}
         <ExportImagePanel nodes={nodes} fileBaseName={doc.name} />
       </ReactFlow>
+
+      {contextMenu &&
+        createPortal(
+          <div
+            ref={contextMenuRef}
+            style={{ position: 'fixed', top: contextMenu.screenY, left: contextMenu.screenX, zIndex: 9999 }}
+            className="w-48 rounded-xl bg-white p-1 shadow-lg ring-1 ring-[#d2d2d7]"
+          >
+            <button
+              type="button"
+              onClick={() => {
+                addMindMapRoot({ x: contextMenu.flowX, y: contextMenu.flowY })
+                setContextMenu(null)
+              }}
+              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-[#1d1d1f] hover:bg-[#0071e3]/10"
+            >
+              <span>◎</span>
+              <span>中心テーマを作成</span>
+            </button>
+          </div>,
+          document.body,
+        )}
     </div>
   )
 }
