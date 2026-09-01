@@ -13,16 +13,13 @@ export type StepNode = Node<StepData>
 
 export type DocKind = 'flowchart' | 'mindmap' | 'freeform'
 
-export type MilestoneStatus = 'todo' | 'doing' | 'done'
+export type MindMapLayoutStyle = 'radial' | 'tree' | 'vertical' | 'balanced'
 
 export interface MindMapNodeData {
   text: string
   color?: string
   root?: boolean
   collapsed?: boolean
-  status?: MilestoneStatus
-  progressDone?: number
-  progressTotal?: number
   [key: string]: unknown
 }
 
@@ -49,6 +46,7 @@ export interface FlowDoc {
   edges: Edge[]
   updatedAt: number
   driveFileId?: string
+  mindMapAutoLayout?: MindMapLayoutStyle | null
 }
 
 export interface ReflectionEntry {

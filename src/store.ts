@@ -13,8 +13,7 @@ import { persist } from 'zustand/middleware'
 import { computeFlowchartLayout } from './lib/flowchartLayout'
 import {
   angleToHandle,
-  computeRadialLayout,
-  computeTreeLayout,
+  computeMindMapLayoutByStyle,
   OPPOSITE_HANDLE,
   recomputeEdgeHandles,
 } from './lib/mindmapLayout'
@@ -25,11 +24,27 @@ import type {
   FlowDoc,
   FreeShape,
   GoalProfile,
+  MindMapLayoutStyle,
   MindMapNodeData,
   MonthlyGoal,
   ReflectionEntry,
   StepData,
 } from './types'
+
+function withAutoLayout(doc: FlowDoc): FlowDoc {
+  if (doc.kind !== 'mindmap' || !doc.mindMapAutoLayout) return doc
+  const root = doc.nodes.find((n) => (n.data as MindMapNodeData).root)
+  if (!root) return doc
+  const positions = computeMindMapLayoutByStyle(doc.mindMapAutoLayout, doc.nodes, doc.edges, root.id)
+  return {
+    ...doc,
+    nodes: doc.nodes.map((n) => {
+      const pos = positions.get(n.id)
+      return pos ? { ...n, position: pos } : n
+    }),
+    edges: recomputeEdgeHandles(doc.edges, positions, doc.nodes),
+  }
+}
 
 const FREE_SHAPE_SIZE: Record<FreeShape, { width: number; height: number }> = {
   rectangle: { width: 160, height: 90 },
@@ -109,7 +124,7 @@ interface FlowStore {
   applyFlowchartLayout: () => void
   addMindMapChild: (parentId: string) => void
   addMindMapRoot: (position: { x: number; y: number }) => void
-  applyMindMapLayout: (style: 'radial' | 'tree') => void
+  applyMindMapLayout: (style: MindMapLayoutStyle | null) => void
   addFreeShape: (shape: FreeShape) => void
   updateStep: (nodeId: string, data: Partial<StepData>) => void
   deleteStep: (nodeId: string) => void
@@ -302,7 +317,7 @@ export const useFlowStore = create<FlowStore>()(
         set((s) => ({
           docs: s.docs.map((d) =>
             d.id === s.activeId
-              ? {
+              ? withAutoLayout({
                   ...d,
                   nodes: [
                     ...d.nodes,
@@ -328,7 +343,7 @@ export const useFlowStore = create<FlowStore>()(
                     },
                   ],
                   updatedAt: Date.now(),
-                }
+                })
               : d,
           ),
           selectedNodeId: newId,
@@ -339,7 +354,7 @@ export const useFlowStore = create<FlowStore>()(
         set((s) => ({
           docs: s.docs.map((d) =>
             d.id === s.activeId
-              ? {
+              ? withAutoLayout({
                   ...d,
                   nodes: [
                     ...d.nodes,
@@ -351,27 +366,34 @@ export const useFlowStore = create<FlowStore>()(
                     },
                   ],
                   updatedAt: Date.now(),
-                }
+                })
               : d,
           ),
           selectedNodeId: newId,
         }))
       },
       applyMindMapLayout: (style) => {
+        if (style === null) {
+          set((s) => ({
+            docs: s.docs.map((d) =>
+              d.id === s.activeId ? { ...d, mindMapAutoLayout: null } : d,
+            ),
+          }))
+          return
+        }
+
         const doc = get().activeDoc()
         const root = doc.nodes.find((n) => (n.data as MindMapNodeData).root)
         if (!root) return
 
-        const positions =
-          style === 'radial'
-            ? computeRadialLayout(doc.nodes, doc.edges, root.id)
-            : computeTreeLayout(doc.nodes, doc.edges, root.id)
+        const positions = computeMindMapLayoutByStyle(style, doc.nodes, doc.edges, root.id)
 
         set((s) => ({
           docs: s.docs.map((d) =>
             d.id === s.activeId
               ? {
                   ...d,
+                  mindMapAutoLayout: style,
                   nodes: d.nodes.map((n) => {
                     const pos = positions.get(n.id)
                     return pos ? { ...n, position: pos } : n
@@ -437,12 +459,12 @@ export const useFlowStore = create<FlowStore>()(
         set((s) => ({
           docs: s.docs.map((d) =>
             d.id === s.activeId
-              ? {
+              ? withAutoLayout({
                   ...d,
                   nodes: d.nodes.filter((n) => n.id !== nodeId),
                   edges: d.edges.filter((e) => e.source !== nodeId && e.target !== nodeId),
                   updatedAt: Date.now(),
-                }
+                })
               : d,
           ),
           selectedNodeId: s.selectedNodeId === nodeId ? null : s.selectedNodeId,

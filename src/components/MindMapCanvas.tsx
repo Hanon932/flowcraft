@@ -39,12 +39,6 @@ export default function MindMapCanvas() {
     [doc.nodes, doc.edges],
   )
 
-  const milestoneStats = useMemo(() => {
-    const milestones = doc.nodes.filter((n) => !(n.data as MindMapNodeData).root)
-    const done = milestones.filter((n) => (n.data as MindMapNodeData).status === 'done').length
-    return { done, total: milestones.length }
-  }, [doc.nodes])
-
   const nodes = useMemo<Node[]>(
     () =>
       doc.nodes
@@ -56,12 +50,9 @@ export default function MindMapCanvas() {
             ...n.data,
             hasChildren: (childCounts.get(n.id) ?? 0) > 0,
             hiddenCount: descendantCounts.get(n.id) ?? 0,
-            ...((n.data as MindMapNodeData).root
-              ? { progressDone: milestoneStats.done, progressTotal: milestoneStats.total }
-              : {}),
           },
         })),
-    [doc.nodes, selectedNodeId, hiddenIds, childCounts, descendantCounts, milestoneStats],
+    [doc.nodes, selectedNodeId, hiddenIds, childCounts, descendantCounts],
   )
 
   const edges = useMemo(
@@ -117,7 +108,7 @@ export default function MindMapCanvas() {
         onNodesChange={mode === 'edit' ? onNodesChange : undefined}
         onEdgesChange={mode === 'edit' ? onEdgesChange : undefined}
         onConnect={mode === 'edit' ? onConnect : undefined}
-        nodesDraggable={mode === 'edit'}
+        nodesDraggable={mode === 'edit' && !doc.mindMapAutoLayout}
         nodesConnectable={mode === 'edit'}
         elementsSelectable
         onNodeClick={(_, node) => setSelectedNodeId(node.id)}

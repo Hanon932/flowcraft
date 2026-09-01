@@ -40,8 +40,6 @@ export default function GoalRoadmapPanel({ onJumpToDate }: { onJumpToDate: (date
   const roadmapDoc = docs.find((d) => d.id === roadmapDocId)
   const milestoneNodes = (roadmapDoc?.nodes ?? []).filter((n) => !(n.data as { root?: boolean }).root)
   const total = milestoneNodes.length
-  const done = milestoneNodes.filter((n) => (n.data as { status?: string }).status === 'done').length
-  const percent = total > 0 ? Math.round((done / total) * 100) : 0
 
   function flashDrive(message: string) {
     setDriveStatus(message)
@@ -159,17 +157,9 @@ export default function GoalRoadmapPanel({ onJumpToDate }: { onJumpToDate: (date
 
         {roadmapDoc ? (
           <div className="rounded-2xl bg-[#f5f5f7] p-5">
-            <div className="mb-3 flex items-center justify-between">
-              <span className="text-sm font-semibold text-[#1d1d1f]">達成状況</span>
-              <span className="text-sm font-bold text-[#0071e3]">
-                {done} / {total}（{percent}%）
-              </span>
-            </div>
-            <div className="mb-4 h-2 w-full overflow-hidden rounded-full bg-[#e5e5ea]">
-              <div
-                className="h-full rounded-full bg-[#0071e3] transition-all duration-300"
-                style={{ width: `${percent}%` }}
-              />
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-sm font-semibold text-[#1d1d1f]">分解した項目数</span>
+              <span className="text-sm font-bold text-[#0071e3]">{total} 件</span>
             </div>
             <button
               type="button"
@@ -197,7 +187,7 @@ export default function GoalRoadmapPanel({ onJumpToDate }: { onJumpToDate: (date
         )}
 
         <p className="text-xs leading-relaxed text-[#c7c7cc]">
-          ロードマップ内のノードは、クリックで「未着手 → 進行中 → 達成」を切り替えられます。Tabキーで子ノードを追加し、目標をどんどん分解していきましょう。
+          ロードマップ内でTabキーを押すと子ノードを追加できます。目標をどんどん分解していきましょう。
         </p>
       </div>
 
