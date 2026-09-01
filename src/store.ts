@@ -472,18 +472,19 @@ export const useFlowStore = create<FlowStore>()(
       },
 
       onNodesChange: (changes) => {
+        const hasDimensionChange = changes.some((c) => c.type === 'dimensions')
         set((s) => ({
-          docs: s.docs.map((d) =>
-            d.id === s.activeId
-              ? {
-                  ...d,
-                  nodes: applyNodeChanges(
-                    changes,
-                    d.nodes as Node<Record<string, unknown>>[],
-                  ) as AnyStepNode[],
-                }
-              : d,
-          ),
+          docs: s.docs.map((d) => {
+            if (d.id !== s.activeId) return d
+            const updated: FlowDoc = {
+              ...d,
+              nodes: applyNodeChanges(
+                changes,
+                d.nodes as Node<Record<string, unknown>>[],
+              ) as AnyStepNode[],
+            }
+            return hasDimensionChange ? withAutoLayout(updated) : updated
+          }),
         }))
       },
       onEdgesChange: (changes) => {

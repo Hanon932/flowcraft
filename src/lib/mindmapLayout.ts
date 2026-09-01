@@ -44,9 +44,25 @@ export function countLeaves(
 
 type Positions = Map<string, { x: number; y: number }>
 
+// Nodes auto-size to their text, so a fixed spacing step overlaps as soon as a
+// label is longer than the guess. These fall back sizes are only used before a
+// node has been measured once by React Flow; every other spacing is derived
+// from each node's actual rendered width/height plus SIBLING_GAP breathing room.
+const DEFAULT_NODE_WIDTH = 170
+const DEFAULT_NODE_HEIGHT = 50
+const SIBLING_GAP = 28
+const DEPTH_GAP = 60
+
+function nodeSize(node: AnyStepNode | undefined): { width: number; height: number } {
+  return {
+    width: node?.width ?? DEFAULT_NODE_WIDTH,
+    height: node?.height ?? DEFAULT_NODE_HEIGHT,
+  }
+}
+
 const RADIAL_RADIUS_STEP = 220
 const TREE_X_STEP = 260
-const TREE_Y_STEP = 90
+const VERTICAL_TREE_Y_STEP = 150
 
 export function computeRadialLayout(
   nodes: AnyStepNode[],
@@ -54,18 +70,29 @@ export function computeRadialLayout(
   rootId: string,
 ): Positions {
   const childrenMap = buildChildrenMap(nodes, edges)
+  const nodeById = new Map(nodes.map((n) => [n.id, n]))
   const leafMemo = new Map<string, number>()
   countLeaves(rootId, childrenMap, leafMemo)
 
   const positions: Positions = new Map()
-  const rootNode = nodes.find((n) => n.id === rootId)
-  const center = rootNode ? rootNode.position : { x: 0, y: 0 }
+  const center = nodeById.get(rootId)?.position ?? { x: 0, y: 0 }
   positions.set(rootId, { ...center })
 
   function place(nodeId: string, angleStart: number, angleEnd: number, depth: number) {
     const children = childrenMap.get(nodeId) ?? []
     if (children.length === 0) return
     const total = leafMemo.get(nodeId) ?? 1
+
+    // Widen the ring's radius if the children are too wide to fit their
+    // allotted arc side by side at the default radius.
+    const angleRangeRad = ((angleEnd - angleStart) * Math.PI) / 180
+    const totalChildWidth = children.reduce(
+      (sum, c) => sum + nodeSize(nodeById.get(c)).width + SIBLING_GAP,
+      0,
+    )
+    const neededRadius = angleRangeRad > 0.001 ? totalChildWidth / angleRangeRad : 0
+    const radius = Math.max(RADIAL_RADIUS_STEP * depth, neededRadius)
+
     let cursor = angleStart
     for (const childId of children) {
       const weight = (leafMemo.get(childId) ?? 1) / total
@@ -73,7 +100,6 @@ export function computeRadialLayout(
       const childStart = cursor
       const childEnd = cursor + span
       const midAngle = (childStart + childEnd) / 2
-      const radius = RADIAL_RADIUS_STEP * depth
       const rad = (midAngle * Math.PI) / 180
       positions.set(childId, {
         x: center.x + radius * Math.cos(rad),
@@ -90,22 +116,23 @@ export function computeRadialLayout(
 
 export function computeTreeLayout(nodes: AnyStepNode[], edges: Edge[], rootId: string): Positions {
   const childrenMap = buildChildrenMap(nodes, edges)
+  const nodeById = new Map(nodes.map((n) => [n.id, n]))
   const positions: Positions = new Map()
-  const rootNode = nodes.find((n) => n.id === rootId)
-  const origin = rootNode ? rootNode.position : { x: 0, y: 0 }
-  let leafCursor = 0
+  const origin = nodeById.get(rootId)?.position ?? { x: 0, y: 0 }
+  let cursorTop = 0
 
   function place(nodeId: string, depth: number): number {
     const children = childrenMap.get(nodeId) ?? []
     if (children.length === 0) {
-      const y = origin.y + leafCursor * TREE_Y_STEP
-      leafCursor += 1
-      positions.set(nodeId, { x: origin.x + depth * TREE_X_STEP, y })
+      const { height } = nodeSize(nodeById.get(nodeId))
+      const y = origin.y + cursorTop + height / 2
+      cursorTop += height + SIBLING_GAP
+      positions.set(nodeId, { x: origin.x + depth * (TREE_X_STEP + DEPTH_GAP), y })
       return y
     }
     const childYs = children.map((c) => place(c, depth + 1))
     const y = childYs.reduce((a, b) => a + b, 0) / childYs.length
-    positions.set(nodeId, { x: origin.x + depth * TREE_X_STEP, y })
+    positions.set(nodeId, { x: origin.x + depth * (TREE_X_STEP + DEPTH_GAP), y })
     return y
   }
 
@@ -113,31 +140,29 @@ export function computeTreeLayout(nodes: AnyStepNode[], edges: Edge[], rootId: s
   return positions
 }
 
-const VERTICAL_TREE_X_STEP = 190
-const VERTICAL_TREE_Y_STEP = 150
-
 export function computeVerticalTreeLayout(
   nodes: AnyStepNode[],
   edges: Edge[],
   rootId: string,
 ): Positions {
   const childrenMap = buildChildrenMap(nodes, edges)
+  const nodeById = new Map(nodes.map((n) => [n.id, n]))
   const positions: Positions = new Map()
-  const rootNode = nodes.find((n) => n.id === rootId)
-  const origin = rootNode ? rootNode.position : { x: 0, y: 0 }
-  let leafCursor = 0
+  const origin = nodeById.get(rootId)?.position ?? { x: 0, y: 0 }
+  let cursorLeft = 0
 
   function place(nodeId: string, depth: number): number {
     const children = childrenMap.get(nodeId) ?? []
     if (children.length === 0) {
-      const x = origin.x + leafCursor * VERTICAL_TREE_X_STEP
-      leafCursor += 1
-      positions.set(nodeId, { x, y: origin.y + depth * VERTICAL_TREE_Y_STEP })
+      const { width } = nodeSize(nodeById.get(nodeId))
+      const x = origin.x + cursorLeft + width / 2
+      cursorLeft += width + SIBLING_GAP
+      positions.set(nodeId, { x, y: origin.y + depth * (VERTICAL_TREE_Y_STEP + DEPTH_GAP) })
       return x
     }
     const childXs = children.map((c) => place(c, depth + 1))
     const x = childXs.reduce((a, b) => a + b, 0) / childXs.length
-    positions.set(nodeId, { x, y: origin.y + depth * VERTICAL_TREE_Y_STEP })
+    positions.set(nodeId, { x, y: origin.y + depth * (VERTICAL_TREE_Y_STEP + DEPTH_GAP) })
     return x
   }
 
@@ -151,12 +176,12 @@ export function computeBalancedLayout(
   rootId: string,
 ): Positions {
   const childrenMap = buildChildrenMap(nodes, edges)
+  const nodeById = new Map(nodes.map((n) => [n.id, n]))
   const leafMemo = new Map<string, number>()
   countLeaves(rootId, childrenMap, leafMemo)
 
   const positions: Positions = new Map()
-  const rootNode = nodes.find((n) => n.id === rootId)
-  const origin = rootNode ? rootNode.position : { x: 0, y: 0 }
+  const origin = nodeById.get(rootId)?.position ?? { x: 0, y: 0 }
   positions.set(rootId, { ...origin })
 
   const rootChildren = childrenMap.get(rootId) ?? []
@@ -178,26 +203,38 @@ export function computeBalancedLayout(
     }
   }
 
-  function placeSide(group: string[], direction: 1 | -1, totalWeight: number) {
-    let cursor = -totalWeight / 2
+  function subtreeHeight(nodeId: string): number {
+    const children = childrenMap.get(nodeId) ?? []
+    if (children.length === 0) return nodeSize(nodeById.get(nodeId)).height
+    return (
+      children.reduce((sum, c) => sum + subtreeHeight(c), 0) + SIBLING_GAP * (children.length - 1)
+    )
+  }
+
+  function placeSide(group: string[], direction: 1 | -1) {
+    const totalHeight =
+      group.reduce((sum, c) => sum + subtreeHeight(c), 0) + SIBLING_GAP * Math.max(0, group.length - 1)
+    let cursorTop = -totalHeight / 2
+
     function place(nodeId: string, depth: number): number {
       const children = childrenMap.get(nodeId) ?? []
       if (children.length === 0) {
-        const y = origin.y + cursor * TREE_Y_STEP
-        cursor += 1
-        positions.set(nodeId, { x: origin.x + direction * depth * TREE_X_STEP, y })
+        const { height } = nodeSize(nodeById.get(nodeId))
+        const y = origin.y + cursorTop + height / 2
+        cursorTop += height + SIBLING_GAP
+        positions.set(nodeId, { x: origin.x + direction * depth * (TREE_X_STEP + DEPTH_GAP), y })
         return y
       }
       const childYs = children.map((c) => place(c, depth + 1))
       const y = childYs.reduce((a, b) => a + b, 0) / childYs.length
-      positions.set(nodeId, { x: origin.x + direction * depth * TREE_X_STEP, y })
+      positions.set(nodeId, { x: origin.x + direction * depth * (TREE_X_STEP + DEPTH_GAP), y })
       return y
     }
     for (const child of group) place(child, 1)
   }
 
-  placeSide(rightGroup, 1, rightWeight)
-  placeSide(leftGroup, -1, leftWeight)
+  placeSide(rightGroup, 1)
+  placeSide(leftGroup, -1)
 
   return positions
 }
