@@ -31,6 +31,9 @@ import type {
   StepData,
 } from './types'
 
+let nodeClipboard: { type: string; data: Record<string, unknown>; position: { x: number; y: number } } | null =
+  null
+
 function withAutoLayout(doc: FlowDoc): FlowDoc {
   if (doc.kind !== 'mindmap' || !doc.mindMapAutoLayout) return doc
   const root = doc.nodes.find((n) => (n.data as MindMapNodeData).root)
@@ -122,8 +125,9 @@ interface FlowStore {
   renameFlow: (id: string, name: string) => void
   deleteFlow: (id: string) => void
 
-  addStep: () => void
+  addStep: (position?: { x: number; y: number }) => void
   addConnectedStep: (sourceId: string, direction?: 'above' | 'below' | 'left' | 'right') => void
+  addStickyNote: (position: { x: number; y: number }) => void
   applyFlowchartLayout: () => void
   addMindMapChild: (parentId: string) => void
   addMindMapRoot: (position: { x: number; y: number }) => void
@@ -131,6 +135,8 @@ interface FlowStore {
   addFreeShape: (shape: FreeShape) => void
   updateStep: (nodeId: string, data: Partial<StepData>) => void
   deleteStep: (nodeId: string) => void
+  copySelectedNode: () => void
+  pasteNode: () => void
 
   onNodesChange: (changes: NodeChange[]) => void
   onEdgesChange: (changes: EdgeChange[]) => void
@@ -173,7 +179,9 @@ export const useFlowStore = create<FlowStore>()(
         set((s) => ({
           selectedEdgeId: s.selectedEdgeId === edgeId ? null : s.selectedEdgeId,
           docs: s.docs.map((d) =>
-            d.id === s.activeId ? { ...d, edges: d.edges.filter((e) => e.id !== edgeId) } : d,
+            d.id === s.activeId
+              ? { ...d, edges: d.edges.filter((e) => e.id !== edgeId), updatedAt: Date.now() }
+              : d,
           ),
         }))
       },
@@ -212,7 +220,7 @@ export const useFlowStore = create<FlowStore>()(
         })
       },
 
-      addStep: () => {
+      addStep: (position) => {
         const id = nanoid(6)
         set((s) => ({
           docs: s.docs.map((d) =>
@@ -224,7 +232,7 @@ export const useFlowStore = create<FlowStore>()(
                     {
                       id,
                       type: 'step',
-                      position: {
+                      position: position ?? {
                         x: 250,
                         y: 60 + d.nodes.length * 140,
                       },
@@ -299,6 +307,21 @@ export const useFlowStore = create<FlowStore>()(
               : d,
           ),
           selectedNodeId: newId,
+        }))
+      },
+      addStickyNote: (position) => {
+        const id = nanoid(6)
+        set((s) => ({
+          docs: s.docs.map((d) =>
+            d.id === s.activeId
+              ? {
+                  ...d,
+                  nodes: [...d.nodes, { id, type: 'note', position, data: { text: '' } }],
+                  updatedAt: Date.now(),
+                }
+              : d,
+          ),
+          selectedNodeId: id,
         }))
       },
       applyFlowchartLayout: () => {
@@ -516,9 +539,48 @@ export const useFlowStore = create<FlowStore>()(
           selectedNodeId: s.selectedNodeId === nodeId ? null : s.selectedNodeId,
         }))
       },
+      copySelectedNode: () => {
+        const state = get()
+        const node = state.activeDoc().nodes.find((n) => n.id === state.selectedNodeId)
+        if (!node) return
+        nodeClipboard = {
+          type: node.type ?? 'step',
+          data: structuredClone(node.data) as Record<string, unknown>,
+          position: { ...node.position },
+        }
+      },
+      pasteNode: () => {
+        if (!nodeClipboard) return
+        const clip = nodeClipboard
+        const id = nanoid(6)
+        const position = { x: clip.position.x + 40, y: clip.position.y + 40 }
+        set((s) => ({
+          docs: s.docs.map((d) =>
+            d.id === s.activeId
+              ? {
+                  ...d,
+                  nodes: [
+                    ...d.nodes,
+                    { id, type: clip.type, position, data: structuredClone(clip.data) } as AnyStepNode,
+                  ],
+                  updatedAt: Date.now(),
+                }
+              : d,
+          ),
+          selectedNodeId: id,
+        }))
+        nodeClipboard = { ...clip, position }
+      },
 
       onNodesChange: (changes) => {
         const hasDimensionChange = changes.some((c) => c.type === 'dimensions')
+        // React Flow fires "dimensions" changes on its own (measuring nodes on
+        // mount, font loading, etc.) and "select" changes on every click or
+        // marquee-selection, neither of which is a real edit. Only bump
+        // updatedAt for changes that actually reflect something the user did
+        // (drag, delete, resize), so auto-save doesn't fire on selection or
+        // incidental re-measures.
+        const isUserEdit = changes.some((c) => c.type !== 'dimensions' && c.type !== 'select')
         set((s) => ({
           docs: s.docs.map((d) => {
             if (d.id !== s.activeId) return d
@@ -528,15 +590,25 @@ export const useFlowStore = create<FlowStore>()(
                 changes,
                 d.nodes as Node<Record<string, unknown>>[],
               ) as AnyStepNode[],
+              ...(isUserEdit ? { updatedAt: Date.now() } : undefined),
             }
             return hasDimensionChange ? withAutoLayout(updated) : updated
           }),
         }))
       },
       onEdgesChange: (changes) => {
+        // Same reasoning as onNodesChange: a plain click/marquee selection on
+        // an edge is not an edit and shouldn't trigger auto-save.
+        const isUserEdit = changes.some((c) => c.type !== 'select')
         set((s) => ({
           docs: s.docs.map((d) =>
-            d.id === s.activeId ? { ...d, edges: applyEdgeChanges(changes, d.edges) } : d,
+            d.id === s.activeId
+              ? {
+                  ...d,
+                  edges: applyEdgeChanges(changes, d.edges),
+                  ...(isUserEdit ? { updatedAt: Date.now() } : undefined),
+                }
+              : d,
           ),
         }))
       },
@@ -544,7 +616,7 @@ export const useFlowStore = create<FlowStore>()(
         set((s) => ({
           docs: s.docs.map((d) =>
             d.id === s.activeId
-              ? { ...d, edges: addEdge({ ...connection, animated: false }, d.edges) }
+              ? { ...d, edges: addEdge({ ...connection, animated: false }, d.edges), updatedAt: Date.now() }
               : d,
           ),
         }))

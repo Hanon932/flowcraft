@@ -37,7 +37,15 @@ export interface FreeShapeData {
 
 export type FreeShapeNode = Node<FreeShapeData>
 
-export type AnyStepNode = StepNode | MindMapNode | FreeShapeNode
+export interface StickyNoteData {
+  text: string
+  color?: string
+  [key: string]: unknown
+}
+
+export type StickyNoteNode = Node<StickyNoteData>
+
+export type AnyStepNode = StepNode | MindMapNode | FreeShapeNode | StickyNoteNode
 
 export interface FlowDoc {
   id: string

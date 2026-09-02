@@ -84,7 +84,7 @@ export default function GoalRoadmapPanel({ onJumpToDate }: { onJumpToDate: (date
     }
   }
 
-  useDriveAutoSave(Boolean(driveFileId), { title, why, roadmapDocId }, handleDriveSave)
+  useDriveAutoSave(Boolean(driveFileId), `${title}|${why}|${roadmapDocId}`, handleDriveSave)
 
   function handleCreateRoadmap() {
     const docId = createGoalRoadmap(title || '目標')

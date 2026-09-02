@@ -44,7 +44,13 @@ const SHAPE_CONTENT_PADDING: Record<StepShape, string> = {
   parallelogram: 'px-9 py-3',
 }
 
-const handleClass = '!h-2.5 !w-2.5 !border-2 !border-white !bg-[#0071e3]'
+function autoResizeTextarea(el: HTMLTextAreaElement) {
+  el.style.height = 'auto'
+  el.style.height = `${el.scrollHeight}px`
+}
+
+const handleClass =
+  '!h-2.5 !w-2.5 !border-2 !border-white !bg-[#0071e3] opacity-0 transition-opacity duration-150 group-hover:opacity-100'
 
 function StepNode({ id, data, selected }: NodeProps<StepData>) {
   const mode = useFlowStore((s) => s.mode)
@@ -55,8 +61,29 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
   const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null)
   const contextMenuRef = useRef<HTMLDivElement>(null)
   const [editingTitle, setEditingTitle] = useState(false)
-  const titleInputRef = useRef<HTMLInputElement>(null)
+  const titleInputRef = useRef<HTMLTextAreaElement>(null)
+  const [hoverSide, setHoverSide] = useState<'top' | 'bottom' | 'left' | 'right' | null>(null)
   useClickOutside(Boolean(contextMenuPos), () => setContextMenuPos(null), [contextMenuRef])
+
+  useEffect(() => {
+    if (editingTitle && titleInputRef.current) autoResizeTextarea(titleInputRef.current)
+  }, [editingTitle, data.title])
+
+  function handlePointerMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const distances = {
+      top: y,
+      bottom: rect.height - y,
+      left: x,
+      right: rect.width - x,
+    } as const
+    const nearest = (Object.keys(distances) as (keyof typeof distances)[]).reduce((a, b) =>
+      distances[a] <= distances[b] ? a : b,
+    )
+    setHoverSide(nearest)
+  }
 
   useEffect(() => {
     if (editRequestNodeId === id) {
@@ -72,7 +99,11 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
   const polygonPoints = SHAPE_POLYGON_POINTS[shape]
 
   return (
-    <div className="group relative">
+    <div
+      className="group relative"
+      onMouseMove={isEdit ? handlePointerMove : undefined}
+      onMouseLeave={() => setHoverSide(null)}
+    >
       <div
         onContextMenu={(e) => {
           if (!isEdit) return
@@ -109,19 +140,32 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
 
         <div className={`relative text-center ${SHAPE_CONTENT_PADDING[shape]}`}>
           {editingTitle ? (
-            <input
+            <textarea
               ref={titleInputRef}
               autoFocus
+              rows={1}
               value={data.title}
               onChange={(e) => updateStep(id, { title: e.target.value })}
               onFocus={(e) => e.target.select()}
               onBlur={() => setEditingTitle(false)}
               onKeyDown={(e) => {
                 e.stopPropagation()
-                if (e.key === 'Enter' || e.key === 'Escape') e.currentTarget.blur()
+                if (e.key === 'Escape') {
+                  e.currentTarget.blur()
+                  return
+                }
+                if (e.key === 'Enter' && e.altKey) {
+                  e.preventDefault()
+                  document.execCommand('insertText', false, '\n')
+                  return
+                }
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  e.currentTarget.blur()
+                }
               }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full rounded-md bg-white text-center text-sm font-semibold tracking-tight text-[#1d1d1f] outline-none ring-1 ring-[#0071e3]"
+              className="w-full resize-none overflow-hidden rounded-md bg-white text-center text-sm font-semibold tracking-tight text-[#1d1d1f] outline-none ring-1 ring-[#0071e3]"
             />
           ) : (
             <div
@@ -130,13 +174,13 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
                 e.stopPropagation()
                 setEditingTitle(true)
               }}
-              className="text-sm font-semibold tracking-tight text-[#1d1d1f]"
+              className="whitespace-pre-wrap text-sm font-semibold tracking-tight text-[#1d1d1f]"
             >
               {data.title || '(無題のステップ)'}
             </div>
           )}
           {data.manual && (
-            <div className="mt-1 line-clamp-2 text-xs text-[#86868b]">{data.manual}</div>
+            <div className="mt-1 line-clamp-2 whitespace-pre-line text-xs text-[#86868b]">{data.manual}</div>
           )}
         </div>
 
@@ -211,7 +255,9 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
               e.stopPropagation()
               addConnectedStep(id, 'above')
             }}
-            className="absolute bottom-full left-1/2 z-10 flex h-4 w-4 -translate-x-[22px] translate-y-1 items-center justify-center rounded-full bg-white text-[10px] font-bold leading-none text-[#0071e3] opacity-0 shadow-sm ring-1 ring-[#d2d2d7] transition-opacity duration-150 hover:bg-[#0071e3] hover:text-white group-hover:opacity-100"
+            className={`absolute bottom-full left-1/2 z-10 flex h-4 w-4 -translate-x-[22px] translate-y-1 items-center justify-center rounded-full bg-white text-[10px] font-bold leading-none text-[#0071e3] shadow-sm ring-1 ring-[#d2d2d7] transition-opacity duration-150 hover:bg-[#0071e3] hover:text-white ${
+              hoverSide === 'top' ? 'opacity-100' : 'pointer-events-none opacity-0'
+            }`}
           >
             +
           </button>
@@ -224,7 +270,9 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
               e.stopPropagation()
               addConnectedStep(id, 'below')
             }}
-            className="absolute top-full left-1/2 z-10 flex h-4 w-4 -translate-x-[22px] -translate-y-1 items-center justify-center rounded-full bg-white text-[10px] font-bold leading-none text-[#0071e3] opacity-0 shadow-sm ring-1 ring-[#d2d2d7] transition-opacity duration-150 hover:bg-[#0071e3] hover:text-white group-hover:opacity-100"
+            className={`absolute top-full left-1/2 z-10 flex h-4 w-4 -translate-x-[22px] -translate-y-1 items-center justify-center rounded-full bg-white text-[10px] font-bold leading-none text-[#0071e3] shadow-sm ring-1 ring-[#d2d2d7] transition-opacity duration-150 hover:bg-[#0071e3] hover:text-white ${
+              hoverSide === 'bottom' ? 'opacity-100' : 'pointer-events-none opacity-0'
+            }`}
           >
             +
           </button>
@@ -237,7 +285,9 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
               e.stopPropagation()
               addConnectedStep(id, 'left')
             }}
-            className="absolute right-full top-1/2 z-10 flex h-4 w-4 translate-x-1 -translate-y-[22px] items-center justify-center rounded-full bg-white text-[10px] font-bold leading-none text-[#0071e3] opacity-0 shadow-sm ring-1 ring-[#d2d2d7] transition-opacity duration-150 hover:bg-[#0071e3] hover:text-white group-hover:opacity-100"
+            className={`absolute right-full top-1/2 z-10 flex h-4 w-4 translate-x-1 -translate-y-[22px] items-center justify-center rounded-full bg-white text-[10px] font-bold leading-none text-[#0071e3] shadow-sm ring-1 ring-[#d2d2d7] transition-opacity duration-150 hover:bg-[#0071e3] hover:text-white ${
+              hoverSide === 'left' ? 'opacity-100' : 'pointer-events-none opacity-0'
+            }`}
           >
             +
           </button>
@@ -250,7 +300,9 @@ function StepNode({ id, data, selected }: NodeProps<StepData>) {
               e.stopPropagation()
               addConnectedStep(id, 'right')
             }}
-            className="absolute left-full top-1/2 z-10 flex h-4 w-4 -translate-x-1 -translate-y-[22px] items-center justify-center rounded-full bg-white text-[10px] font-bold leading-none text-[#0071e3] opacity-0 shadow-sm ring-1 ring-[#d2d2d7] transition-opacity duration-150 hover:bg-[#0071e3] hover:text-white group-hover:opacity-100"
+            className={`absolute left-full top-1/2 z-10 flex h-4 w-4 -translate-x-1 -translate-y-[22px] items-center justify-center rounded-full bg-white text-[10px] font-bold leading-none text-[#0071e3] shadow-sm ring-1 ring-[#d2d2d7] transition-opacity duration-150 hover:bg-[#0071e3] hover:text-white ${
+              hoverSide === 'right' ? 'opacity-100' : 'pointer-events-none opacity-0'
+            }`}
           >
             +
           </button>

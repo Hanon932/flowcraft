@@ -67,7 +67,7 @@ export default function Toolbar() {
           <>
             <button
               type="button"
-              onClick={addStep}
+              onClick={() => addStep()}
               className="rounded-full bg-[#0071e3] px-4 py-1.5 text-xs font-medium text-white transition-colors duration-200 hover:bg-[#0077ed]"
             >
               ＋ ステップ追加

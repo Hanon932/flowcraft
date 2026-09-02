@@ -23,11 +23,9 @@ export default function GoogleDriveMenu() {
   }
 
   async function handleSave() {
-    setStatus('Googleドライブに保存中…')
     try {
       const fileId = await saveDocToDrive(doc)
       setDriveFileId(doc.id, fileId)
-      flash('Googleドライブに保存しました')
     } catch (err) {
       flash(err instanceof Error ? err.message : '保存に失敗しました')
     }
@@ -58,7 +56,7 @@ export default function GoogleDriveMenu() {
     }
   }
 
-  useDriveAutoSave(Boolean(doc.driveFileId), doc, handleSave)
+  useDriveAutoSave(Boolean(doc.driveFileId), doc.updatedAt, handleSave)
 
   return (
     <div className="relative flex items-center gap-2">

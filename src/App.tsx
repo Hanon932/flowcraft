@@ -11,7 +11,9 @@ import { useFlowStore, useUiStore } from './store'
 
 function App() {
   const kind = useFlowStore((s) => s.activeDoc().kind ?? 'flowchart')
+  const selectedNode = useFlowStore((s) => s.selectedNode())
   const section = useUiStore((s) => s.section)
+  const showManual = kind === 'flowchart' && selectedNode?.type === 'step'
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -33,6 +35,17 @@ function App() {
       if (e.key === 'F2' && state.selectedNodeId) {
         e.preventDefault()
         state.requestEditNode(state.selectedNodeId)
+        return
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c' && state.selectedNodeId) {
+        state.copySelectedNode()
+        return
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+        e.preventDefault()
+        state.pasteNode()
         return
       }
 
@@ -71,8 +84,14 @@ function App() {
                 )}
               </div>
               {kind === 'flowchart' && (
-                <div className="w-80 shrink-0 border-l border-[#d2d2d7]">
-                  <ManualPanel />
+                <div
+                  className={`shrink-0 overflow-hidden border-[#d2d2d7] transition-[width] duration-200 ease-out ${
+                    showManual ? 'w-80 border-l' : 'w-0 border-l-0'
+                  }`}
+                >
+                  <div className="h-full w-80">
+                    <ManualPanel />
+                  </div>
                 </div>
               )}
             </div>

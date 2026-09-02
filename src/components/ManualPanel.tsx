@@ -5,7 +5,8 @@ import type { StepNode } from '../types'
 
 export default function ManualPanel() {
   const mode = useFlowStore((s) => s.mode)
-  const node = useFlowStore((s) => s.selectedNode()) as StepNode | undefined
+  const selected = useFlowStore((s) => s.selectedNode())
+  const node = selected?.type === 'step' ? (selected as StepNode) : undefined
   const updateStep = useFlowStore((s) => s.updateStep)
   const deleteStep = useFlowStore((s) => s.deleteStep)
   const setSelectedNodeId = useFlowStore((s) => s.setSelectedNodeId)
