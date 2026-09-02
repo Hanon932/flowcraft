@@ -117,6 +117,8 @@ interface FlowStore {
   setSelectedNodeId: (id: string | null) => void
   setSelectedEdgeId: (id: string | null) => void
   deleteEdge: (edgeId: string) => void
+  updateEdgeLabel: (edgeId: string, label: string | undefined) => void
+  updateEdgeType: (edgeId: string, type: string | undefined) => void
   requestEditNode: (nodeId: string) => void
   clearEditRequest: () => void
 
@@ -181,6 +183,32 @@ export const useFlowStore = create<FlowStore>()(
           docs: s.docs.map((d) =>
             d.id === s.activeId
               ? { ...d, edges: d.edges.filter((e) => e.id !== edgeId), updatedAt: Date.now() }
+              : d,
+          ),
+        }))
+      },
+      updateEdgeLabel: (edgeId, label) => {
+        set((s) => ({
+          docs: s.docs.map((d) =>
+            d.id === s.activeId
+              ? {
+                  ...d,
+                  edges: d.edges.map((e) => (e.id === edgeId ? { ...e, label } : e)),
+                  updatedAt: Date.now(),
+                }
+              : d,
+          ),
+        }))
+      },
+      updateEdgeType: (edgeId, type) => {
+        set((s) => ({
+          docs: s.docs.map((d) =>
+            d.id === s.activeId
+              ? {
+                  ...d,
+                  edges: d.edges.map((e) => (e.id === edgeId ? { ...e, type } : e)),
+                  updatedAt: Date.now(),
+                }
               : d,
           ),
         }))
