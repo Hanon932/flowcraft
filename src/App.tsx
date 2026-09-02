@@ -17,10 +17,35 @@ function App() {
     function handleKeyDown(e: KeyboardEvent) {
       const target = e.target as HTMLElement
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
-      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'z') return
-      e.preventDefault()
-      if (e.shiftKey) redo()
-      else undo()
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault()
+        if (e.shiftKey) redo()
+        else undo()
+        return
+      }
+
+      const state = useFlowStore.getState()
+      if (state.mode !== 'edit') return
+      const doc = state.activeDoc()
+      if ((doc.kind ?? 'flowchart') !== 'flowchart') return
+
+      if (e.key === 'F2' && state.selectedNodeId) {
+        e.preventDefault()
+        state.requestEditNode(state.selectedNodeId)
+        return
+      }
+
+      if (e.key !== 'Delete' && e.key !== 'Backspace') return
+      if (state.selectedEdgeId) {
+        e.preventDefault()
+        state.deleteEdge(state.selectedEdgeId)
+        return
+      }
+      if (state.selectedNodeId) {
+        e.preventDefault()
+        state.deleteStep(state.selectedNodeId)
+      }
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)

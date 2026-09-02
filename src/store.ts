@@ -102,6 +102,7 @@ interface FlowStore {
   docs: FlowDoc[]
   activeId: string
   selectedNodeId: string | null
+  selectedEdgeId: string | null
   mode: 'edit' | 'view'
   editRequestNodeId: string | null
 
@@ -111,6 +112,8 @@ interface FlowStore {
   setActiveId: (id: string) => void
   setMode: (mode: 'edit' | 'view') => void
   setSelectedNodeId: (id: string | null) => void
+  setSelectedEdgeId: (id: string | null) => void
+  deleteEdge: (edgeId: string) => void
   requestEditNode: (nodeId: string) => void
   clearEditRequest: () => void
 
@@ -120,7 +123,7 @@ interface FlowStore {
   deleteFlow: (id: string) => void
 
   addStep: () => void
-  addConnectedStep: (sourceId: string) => void
+  addConnectedStep: (sourceId: string, direction?: 'above' | 'below' | 'left' | 'right') => void
   applyFlowchartLayout: () => void
   addMindMapChild: (parentId: string) => void
   addMindMapRoot: (position: { x: number; y: number }) => void
@@ -146,6 +149,7 @@ export const useFlowStore = create<FlowStore>()(
       docs: [initialDoc],
       activeId: initialDoc.id,
       selectedNodeId: null,
+      selectedEdgeId: null,
       mode: 'edit',
       editRequestNodeId: null,
 
@@ -161,9 +165,18 @@ export const useFlowStore = create<FlowStore>()(
           .nodes.find((n) => n.id === selectedNodeId)
       },
 
-      setActiveId: (id) => set({ activeId: id, selectedNodeId: null }),
-      setMode: (mode) => set({ mode, selectedNodeId: null }),
+      setActiveId: (id) => set({ activeId: id, selectedNodeId: null, selectedEdgeId: null }),
+      setMode: (mode) => set({ mode, selectedNodeId: null, selectedEdgeId: null }),
       setSelectedNodeId: (id) => set({ selectedNodeId: id }),
+      setSelectedEdgeId: (id) => set({ selectedEdgeId: id }),
+      deleteEdge: (edgeId) => {
+        set((s) => ({
+          selectedEdgeId: s.selectedEdgeId === edgeId ? null : s.selectedEdgeId,
+          docs: s.docs.map((d) =>
+            d.id === s.activeId ? { ...d, edges: d.edges.filter((e) => e.id !== edgeId) } : d,
+          ),
+        }))
+      },
       requestEditNode: (nodeId) => set({ editRequestNodeId: nodeId }),
       clearEditRequest: () => set({ editRequestNodeId: null }),
 
@@ -225,11 +238,47 @@ export const useFlowStore = create<FlowStore>()(
           selectedNodeId: id,
         }))
       },
-      addConnectedStep: (sourceId) => {
+      addConnectedStep: (sourceId, direction = 'below') => {
         const doc = get().activeDoc()
         const source = doc.nodes.find((n) => n.id === sourceId)
         if (!source) return
         const newId = nanoid(6)
+        const offset = {
+          above: { x: 0, y: -160 },
+          below: { x: 0, y: 160 },
+          left: { x: -280, y: 0 },
+          right: { x: 280, y: 0 },
+        }[direction]
+        const newEdge = {
+          above: {
+            id: `e-${newId}-${sourceId}`,
+            source: newId,
+            sourceHandle: 'bottom',
+            target: sourceId,
+            targetHandle: 'top',
+          },
+          below: {
+            id: `e-${sourceId}-${newId}`,
+            source: sourceId,
+            sourceHandle: 'bottom',
+            target: newId,
+            targetHandle: 'top',
+          },
+          left: {
+            id: `e-${newId}-${sourceId}`,
+            source: newId,
+            sourceHandle: 'right',
+            target: sourceId,
+            targetHandle: 'left',
+          },
+          right: {
+            id: `e-${sourceId}-${newId}`,
+            source: sourceId,
+            sourceHandle: 'right',
+            target: newId,
+            targetHandle: 'left',
+          },
+        }[direction]
         set((s) => ({
           docs: s.docs.map((d) =>
             d.id === s.activeId
@@ -240,14 +289,11 @@ export const useFlowStore = create<FlowStore>()(
                     {
                       id: newId,
                       type: 'step',
-                      position: { x: source.position.x, y: source.position.y + 160 },
+                      position: { x: source.position.x + offset.x, y: source.position.y + offset.y },
                       data: { title: `ステップ ${d.nodes.length + 1}`, manual: '' },
                     },
                   ],
-                  edges: [
-                    ...d.edges,
-                    { id: `e-${sourceId}-${newId}`, source: sourceId, target: newId },
-                  ],
+                  edges: [...d.edges, newEdge],
                   updatedAt: Date.now(),
                 }
               : d,
@@ -503,7 +549,6 @@ export const useFlowStore = create<FlowStore>()(
           ),
         }))
       },
-
       importDoc: (doc) => {
         set((s) => ({
           docs: [...s.docs, { ...doc, driveFileId: undefined }],

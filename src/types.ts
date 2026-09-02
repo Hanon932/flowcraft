@@ -6,6 +6,7 @@ export interface StepData {
   title: string
   manual: string
   shape?: StepShape
+  color?: string
   [key: string]: unknown
 }
 

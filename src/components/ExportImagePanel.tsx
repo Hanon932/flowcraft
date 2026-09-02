@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Panel, type Node } from 'reactflow'
-import { copyBlobToClipboard, downloadBlob, flowToPngBlob } from '../lib/exportImage'
+import { copyBlobToClipboard, downloadBlob, flowToPdfBlob, flowToPngBlob } from '../lib/exportImage'
 
 export default function ExportImagePanel({
   nodes,
@@ -25,15 +25,15 @@ export default function ExportImagePanel({
     }
   }
 
-  async function handleDownloadImage() {
-    setStatus('画像を生成中…')
+  async function handleDownloadPdf() {
+    setStatus('PDFを生成中…')
     try {
-      const blob = await flowToPngBlob(nodes)
-      downloadBlob(blob, `${fileBaseName || 'flow'}.png`)
-      setStatus('画像を保存しました')
+      const blob = await flowToPdfBlob(nodes)
+      downloadBlob(blob, `${fileBaseName || 'flow'}.pdf`)
+      setStatus('PDFを保存しました')
     } catch (err) {
       console.error(err)
-      setStatus('画像の生成に失敗しました')
+      setStatus('PDFの生成に失敗しました')
     } finally {
       setTimeout(() => setStatus(null), 3500)
     }
@@ -52,11 +52,11 @@ export default function ExportImagePanel({
         </button>
         <button
           type="button"
-          onClick={handleDownloadImage}
-          title="PNG画像として保存"
+          onClick={handleDownloadPdf}
+          title="PDFとして保存"
           className="rounded-full px-3 py-1 text-xs text-[#86868b] hover:bg-[#0071e3]/10 hover:text-[#0071e3]"
         >
-          画像を保存
+          PDFを保存
         </button>
       </div>
       {status && (

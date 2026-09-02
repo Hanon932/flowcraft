@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import ReactFlow, { type Node, type NodeTypes } from 'reactflow'
+import ReactFlow, { ConnectionMode, type Edge, type Node, type NodeTypes } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { useFlowStore } from '../store'
 import ExportImagePanel from './ExportImagePanel'
@@ -11,40 +11,48 @@ export default function FlowCanvas() {
   const doc = useFlowStore((s) => s.activeDoc())
   const mode = useFlowStore((s) => s.mode)
   const selectedNodeId = useFlowStore((s) => s.selectedNodeId)
+  const selectedEdgeId = useFlowStore((s) => s.selectedEdgeId)
   const onNodesChange = useFlowStore((s) => s.onNodesChange)
   const onEdgesChange = useFlowStore((s) => s.onEdgesChange)
   const onConnect = useFlowStore((s) => s.onConnect)
   const setSelectedNodeId = useFlowStore((s) => s.setSelectedNodeId)
-  const deleteStep = useFlowStore((s) => s.deleteStep)
-
+  const setSelectedEdgeId = useFlowStore((s) => s.setSelectedEdgeId)
   const nodes = useMemo<Node[]>(
     () => doc.nodes.map((n) => ({ ...n, selected: n.id === selectedNodeId })),
     [doc.nodes, selectedNodeId],
   )
 
-  function handleKeyDown(e: React.KeyboardEvent) {
-    const target = e.target as HTMLElement
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
-    if (e.key !== 'Delete' && e.key !== 'Backspace') return
-    if (mode !== 'edit' || !selectedNodeId) return
-    e.preventDefault()
-    deleteStep(selectedNodeId)
-  }
+  const edges = useMemo<Edge[]>(
+    () => doc.edges.map((e) => ({ ...e, selected: e.id === selectedEdgeId })),
+    [doc.edges, selectedEdgeId],
+  )
 
   return (
-    <div className="h-full w-full bg-[#f5f5f7]" onKeyDown={handleKeyDown}>
+    <div className="h-full w-full bg-[#f5f5f7]">
       <ReactFlow
         nodes={nodes}
-        edges={doc.edges}
+        edges={edges}
         nodeTypes={nodeTypes}
+        connectionMode={ConnectionMode.Loose}
         onNodesChange={mode === 'edit' ? onNodesChange : undefined}
         onEdgesChange={mode === 'edit' ? onEdgesChange : undefined}
         onConnect={mode === 'edit' ? onConnect : undefined}
         nodesDraggable={mode === 'edit'}
         nodesConnectable={mode === 'edit'}
         elementsSelectable
-        onNodeClick={(_, node) => setSelectedNodeId(node.id)}
-        onPaneClick={() => setSelectedNodeId(null)}
+        onNodeClick={(_, node) => {
+          setSelectedNodeId(node.id)
+          setSelectedEdgeId(null)
+        }}
+        onEdgeClick={(e, edge) => {
+          e.stopPropagation()
+          setSelectedEdgeId(edge.id)
+          setSelectedNodeId(null)
+        }}
+        onPaneClick={() => {
+          setSelectedNodeId(null)
+          setSelectedEdgeId(null)
+        }}
         defaultEdgeOptions={{ style: { stroke: '#a1a1a6', strokeWidth: 1.5 } }}
         fitView
       >
