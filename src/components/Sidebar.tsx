@@ -1,12 +1,16 @@
 import { useState } from 'react'
-import { useFlowStore, useGoalProfileStore, useUiStore, type UiSection } from '../store'
+import { useFlowStore, useUiStore, type UiSection } from '../store'
+import type { DocKind } from '../types'
 
 const TABS: { key: UiSection; label: string; icon: string }[] = [
   { key: 'flowchart', label: 'フローチャート', icon: '🗂️' },
   { key: 'mindmap', label: 'マインドマップ', icon: '🧠' },
   { key: 'freeform', label: 'ホワイトボード', icon: '🖊️' },
-  { key: 'reflection', label: '振り返り', icon: '📝' },
+  { key: 'reflection', label: 'PDCA', icon: '⚡' },
+  { key: 'daily', label: '毎日の振り返り', icon: '📅' },
 ]
+
+const DOC_LIST_SECTIONS: UiSection[] = ['flowchart', 'mindmap', 'freeform']
 
 export default function Sidebar() {
   const docs = useFlowStore((s) => s.docs)
@@ -19,14 +23,27 @@ export default function Sidebar() {
   const [draftName, setDraftName] = useState('')
   const section = useUiStore((s) => s.section)
   const setSection = useUiStore((s) => s.setSection)
-  const roadmapDocId = useGoalProfileStore((s) => s.roadmapDocId)
 
-  const visibleDocs =
-    section === 'reflection' ? [] : docs.filter((d) => (d.kind ?? 'flowchart') === section)
+  const visibleDocs = DOC_LIST_SECTIONS.includes(section)
+    ? docs.filter((d) => (d.kind ?? 'flowchart') === section)
+    : []
 
   return (
     <div className="group/sidebar relative h-full w-14 shrink-0">
       <div className="absolute inset-y-0 left-0 z-30 flex w-14 flex-col overflow-hidden border-r border-[#d2d2d7] bg-white transition-[width] duration-200 ease-out group-hover/sidebar:w-64 group-hover/sidebar:shadow-xl">
+        <div className="border-b border-[#d2d2d7] p-2">
+          <button
+            type="button"
+            onClick={() => setSection('home')}
+            title="ホーム"
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-xs font-medium tracking-tight text-[#86868b] transition-colors duration-200 hover:bg-black/[0.03] hover:text-[#1d1d1f]"
+          >
+            <span className="shrink-0 text-sm">🧭</span>
+            <span className="whitespace-nowrap opacity-0 transition-opacity duration-150 group-hover/sidebar:opacity-100">
+              ホーム
+            </span>
+          </button>
+        </div>
         <div className="flex flex-col gap-1 border-b border-[#d2d2d7] p-2">
           {TABS.map((t) => (
             <button
@@ -51,7 +68,11 @@ export default function Sidebar() {
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden whitespace-nowrap opacity-0 transition-opacity duration-150 group-hover/sidebar:opacity-100">
           {section === 'reflection' ? (
             <p className="px-4 py-4 text-xs leading-relaxed text-[#86868b]">
-              毎日の反省点・改善点を記録できます。日々の出来事ではなく、次に活かすポイントだけを残す場所です。
+              鬼速PDCAで目標達成を進める場所です。大目標から課題を洗い出し、優先順位をつけて、KPIで検証しながら回します。
+            </p>
+          ) : section === 'daily' ? (
+            <p className="px-4 py-4 text-xs leading-relaxed text-[#86868b]">
+              KGI・ギャップ・KPI・DOを毎日確認しながら、DOを実行できたか記録する場所です。
             </p>
           ) : (
             <>
@@ -61,7 +82,7 @@ export default function Sidebar() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => createFlow(section)}
+                  onClick={() => createFlow(section as DocKind)}
                   title="新規作成"
                   className="flex h-6 w-6 items-center justify-center rounded-full bg-[#0071e3] text-sm font-bold text-white transition-colors duration-200 hover:bg-[#0077ed]"
                 >
@@ -104,7 +125,6 @@ export default function Sidebar() {
                           setDraftName(d.name)
                         }}
                       >
-                        {d.id === roadmapDocId && '🎯 '}
                         {d.name}
                       </span>
                     )}

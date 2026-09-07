@@ -1,4 +1,4 @@
-import type { FlowDoc, GoalProfile, MonthlyGoal, ReflectionEntry } from '../types'
+import type { FlowDoc, PdcaCycle } from '../types'
 
 const SCOPE = 'https://www.googleapis.com/auth/drive.file'
 const DRIVE_FILES_URL = 'https://www.googleapis.com/drive/v3/files'
@@ -140,19 +140,16 @@ export async function loadDriveFile(fileId: string): Promise<FlowDoc> {
   return (await res.json()) as FlowDoc
 }
 
-const REFLECTIONS_FILE_NAME = 'flowcraft-reflections.json'
+const PDCA_FILE_NAME = 'flowcraft-pdca.json'
 
-export async function saveReflectionsToDrive(
-  entries: ReflectionEntry[],
-  existingFileId?: string,
-): Promise<string> {
-  return uploadJson(REFLECTIONS_FILE_NAME, entries, existingFileId)
+export async function savePdcaToDrive(cycles: PdcaCycle[], existingFileId?: string): Promise<string> {
+  return uploadJson(PDCA_FILE_NAME, cycles, existingFileId)
 }
 
-export async function findReflectionsFile(): Promise<DriveFileSummary | null> {
+export async function findPdcaFile(): Promise<DriveFileSummary | null> {
   const token = await requestAccessToken()
   const params = new URLSearchParams({
-    q: `name='${REFLECTIONS_FILE_NAME}' and trashed=false`,
+    q: `name='${PDCA_FILE_NAME}' and trashed=false`,
     fields: 'files(id,name,modifiedTime)',
     spaces: 'drive',
     pageSize: '1',
@@ -162,62 +159,8 @@ export async function findReflectionsFile(): Promise<DriveFileSummary | null> {
   return json.files[0] ?? null
 }
 
-export async function loadReflectionsFromDrive(fileId: string): Promise<ReflectionEntry[]> {
+export async function loadPdcaFromDrive(fileId: string): Promise<PdcaCycle[]> {
   const token = await requestAccessToken()
   const res = await driveFetch(`${DRIVE_FILES_URL}/${fileId}?alt=media`, token)
-  return (await res.json()) as ReflectionEntry[]
-}
-
-const GOALS_FILE_NAME = 'flowcraft-goals.json'
-
-export async function saveGoalsToDrive(goals: MonthlyGoal[], existingFileId?: string): Promise<string> {
-  return uploadJson(GOALS_FILE_NAME, goals, existingFileId)
-}
-
-export async function findGoalsFile(): Promise<DriveFileSummary | null> {
-  const token = await requestAccessToken()
-  const params = new URLSearchParams({
-    q: `name='${GOALS_FILE_NAME}' and trashed=false`,
-    fields: 'files(id,name,modifiedTime)',
-    spaces: 'drive',
-    pageSize: '1',
-  })
-  const res = await driveFetch(`${DRIVE_FILES_URL}?${params.toString()}`, token)
-  const json = (await res.json()) as { files: DriveFileSummary[] }
-  return json.files[0] ?? null
-}
-
-export async function loadGoalsFromDrive(fileId: string): Promise<MonthlyGoal[]> {
-  const token = await requestAccessToken()
-  const res = await driveFetch(`${DRIVE_FILES_URL}/${fileId}?alt=media`, token)
-  return (await res.json()) as MonthlyGoal[]
-}
-
-const GOAL_PROFILE_FILE_NAME = 'flowcraft-goal-profile.json'
-
-export async function saveGoalProfileToDrive(
-  profile: GoalProfile,
-  existingFileId?: string,
-): Promise<string> {
-  const { driveFileId: _driveFileId, ...rest } = profile
-  return uploadJson(GOAL_PROFILE_FILE_NAME, rest, existingFileId)
-}
-
-export async function findGoalProfileFile(): Promise<DriveFileSummary | null> {
-  const token = await requestAccessToken()
-  const params = new URLSearchParams({
-    q: `name='${GOAL_PROFILE_FILE_NAME}' and trashed=false`,
-    fields: 'files(id,name,modifiedTime)',
-    spaces: 'drive',
-    pageSize: '1',
-  })
-  const res = await driveFetch(`${DRIVE_FILES_URL}?${params.toString()}`, token)
-  const json = (await res.json()) as { files: DriveFileSummary[] }
-  return json.files[0] ?? null
-}
-
-export async function loadGoalProfileFromDrive(fileId: string): Promise<GoalProfile> {
-  const token = await requestAccessToken()
-  const res = await driveFetch(`${DRIVE_FILES_URL}/${fileId}?alt=media`, token)
-  return (await res.json()) as GoalProfile
+  return (await res.json()) as PdcaCycle[]
 }

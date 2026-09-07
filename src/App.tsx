@@ -1,11 +1,13 @@
 import { useEffect } from 'react'
+import DailyPanel from './components/DailyPanel'
 import FlowCanvas from './components/FlowCanvas'
 import FreeCanvas from './components/FreeCanvas'
 import ManualPanel from './components/ManualPanel'
 import MindMapCanvas from './components/MindMapCanvas'
-import ReflectionPanel from './components/ReflectionPanel'
+import PdcaPanel from './components/PdcaPanel'
 import Sidebar from './components/Sidebar'
 import Toolbar from './components/Toolbar'
+import TopPage from './components/TopPage'
 import { redo, undo } from './history'
 import { useFlowStore, useUiStore } from './store'
 
@@ -64,12 +66,26 @@ function App() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  if (section === 'home') {
+    return (
+      <div className="h-screen w-screen bg-[#fbfbfd] text-[#1d1d1f]">
+        <TopPage />
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen w-screen bg-[#fbfbfd] text-[#1d1d1f]">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         {section === 'reflection' ? (
-          <ReflectionPanel />
+          <div className="mx-auto flex h-full w-full max-w-3xl min-h-0 flex-col p-6">
+            <PdcaPanel />
+          </div>
+        ) : section === 'daily' ? (
+          <div className="mx-auto flex h-full w-full max-w-3xl min-h-0 flex-col p-6">
+            <DailyPanel />
+          </div>
         ) : (
           <>
             <Toolbar />

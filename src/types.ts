@@ -58,29 +58,49 @@ export interface FlowDoc {
   mindMapAutoLayout?: MindMapLayoutStyle | null
 }
 
-export interface ReflectionEntry {
+export type PdcaGrade = 'A' | 'B' | 'C' | null
+export type PdcaTimeUnit = 'weeks' | 'months'
+
+export interface PdcaSolution {
   id: string
+  text: string
+  impact: PdcaGrade
+  timeHours: number | null
+  ease: PdcaGrade
+}
+
+// One day's execution record for a single DO (PdcaSolution). Keyed by
+// solutionId + date so history isn't overwritten as days pass.
+export interface PdcaDoLog {
+  id: string
+  solutionId: string
   date: string
-  problem: string
-  improvement: string
-  goalAction: string
-  updatedAt: number
+  done: boolean
+  note: string
 }
 
-export interface MonthlyGoal {
+export interface PdcaIssue {
   id: string
-  month: string
-  plan: string
-  doPlan: string
-  check: string
-  act: string
-  updatedAt: number
+  text: string
+  impact: PdcaGrade
+  timeAmount: number | null
+  timeUnit: PdcaTimeUnit
+  ease: PdcaGrade
+  selected: boolean
+  kpi: string
+  solutions: PdcaSolution[]
 }
 
-export interface GoalProfile {
+// 鬼速PDCA-style cycle. Being rebuilt step by step, starting from just the
+// KGI (quantified ultimate goal) — more fields land as the flow grows.
+export interface PdcaCycle {
+  id: string
   title: string
-  why: string
-  roadmapDocId?: string
-  driveFileId?: string
+  kgiGoal: string
+  kgiDeadline: string
+  currentState: string
+  gap: string
+  issues: PdcaIssue[]
+  createdAt: number
   updatedAt: number
 }

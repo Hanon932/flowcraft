@@ -23,11 +23,12 @@ import type {
   DocKind,
   FlowDoc,
   FreeShape,
-  GoalProfile,
   MindMapLayoutStyle,
   MindMapNodeData,
-  MonthlyGoal,
-  ReflectionEntry,
+  PdcaCycle,
+  PdcaDoLog,
+  PdcaIssue,
+  PdcaSolution,
   StepData,
 } from './types'
 
@@ -123,7 +124,6 @@ interface FlowStore {
   clearEditRequest: () => void
 
   createFlow: (kind: DocKind) => void
-  createGoalRoadmap: (title: string) => string
   renameFlow: (id: string, name: string) => void
   deleteFlow: (id: string) => void
 
@@ -134,6 +134,7 @@ interface FlowStore {
   addMindMapChild: (parentId: string) => void
   addMindMapRoot: (position: { x: number; y: number }) => void
   applyMindMapLayout: (style: MindMapLayoutStyle | null) => void
+  swapMindMapSiblings: (nodeIdA: string, nodeIdB: string) => void
   addFreeShape: (shape: FreeShape) => void
   updateStep: (nodeId: string, data: Partial<StepData>) => void
   deleteStep: (nodeId: string) => void
@@ -222,17 +223,6 @@ export const useFlowStore = create<FlowStore>()(
           kind === 'mindmap' ? 'マインドマップ' : kind === 'freeform' ? 'ホワイトボード' : '新しいフロー'
         const doc = createDoc(`${label} ${countOfKind + 1}`, kind)
         set((s) => ({ docs: [...s.docs, doc], activeId: doc.id, selectedNodeId: null }))
-      },
-      createGoalRoadmap: (title) => {
-        const doc = createDoc(title || '目標ロードマップ', 'mindmap')
-        doc.nodes = [
-          {
-            ...doc.nodes[0],
-            data: { ...doc.nodes[0].data, text: title || '目標' },
-          },
-        ]
-        set((s) => ({ docs: [...s.docs, doc], activeId: doc.id, selectedNodeId: null }))
-        return doc.id
       },
       renameFlow: (id, name) => {
         set((s) => ({
@@ -502,6 +492,48 @@ export const useFlowStore = create<FlowStore>()(
           ),
         }))
       },
+      swapMindMapSiblings: (nodeIdA, nodeIdB) => {
+        if (nodeIdA === nodeIdB) return
+        const doc = get().activeDoc()
+        const edgeA = doc.edges.find((e) => e.target === nodeIdA)
+        const edgeB = doc.edges.find((e) => e.target === nodeIdB)
+        // Only two nodes hanging off the same parent have a well-defined
+        // "swap": it's a reorder of that parent's children, which the
+        // layout functions read straight off edges-array order.
+        if (!edgeA || !edgeB || edgeA.source !== edgeB.source) return
+        const indexA = doc.edges.indexOf(edgeA)
+        const indexB = doc.edges.indexOf(edgeB)
+        const swappedEdges = [...doc.edges]
+        swappedEdges[indexA] = edgeB
+        swappedEdges[indexB] = edgeA
+
+        const root = doc.nodes.find((n) => (n.data as MindMapNodeData).root)
+        if (!root || !doc.mindMapAutoLayout) {
+          set((s) => ({
+            docs: s.docs.map((d) =>
+              d.id === s.activeId ? { ...d, edges: swappedEdges, updatedAt: Date.now() } : d,
+            ),
+          }))
+          return
+        }
+
+        const positions = computeMindMapLayoutByStyle(doc.mindMapAutoLayout, doc.nodes, swappedEdges, root.id)
+        set((s) => ({
+          docs: s.docs.map((d) =>
+            d.id === s.activeId
+              ? {
+                  ...d,
+                  nodes: d.nodes.map((n) => {
+                    const pos = positions.get(n.id)
+                    return pos ? { ...n, position: pos } : n
+                  }),
+                  edges: recomputeEdgeHandles(swappedEdges, positions, d.nodes),
+                  updatedAt: Date.now(),
+                }
+              : d,
+          ),
+        }))
+      },
       addFreeShape: (shape) => {
         const id = nanoid(6)
         const { width, height } = FREE_SHAPE_SIZE[shape]
@@ -670,7 +702,7 @@ export const useFlowStore = create<FlowStore>()(
   ),
 )
 
-export type UiSection = DocKind | 'reflection'
+export type UiSection = DocKind | 'reflection' | 'daily' | 'home'
 
 interface UiStore {
   section: UiSection
@@ -678,159 +710,334 @@ interface UiStore {
 }
 
 export const useUiStore = create<UiStore>((set) => ({
-  section: 'flowchart',
+  section: 'home',
   setSection: (section) => set({ section }),
 }))
 
-interface ReflectionStore {
-  entries: ReflectionEntry[]
+// Fields have been added to PdcaCycle (and PdcaIssue) incrementally;
+// normalize whatever shape a persisted or Drive-loaded cycle actually has
+// (which may predate some fields) so the UI never hits undefined.gap or
+// undefined.impact.
+function normalizeSolution(sol: Partial<PdcaSolution> & { id: string }): PdcaSolution {
+  return {
+    id: sol.id,
+    text: sol.text ?? '',
+    impact: sol.impact ?? null,
+    timeHours: sol.timeHours ?? null,
+    ease: sol.ease ?? null,
+  }
+}
+
+function normalizeIssue(i: Partial<PdcaIssue> & { id: string }): PdcaIssue {
+  return {
+    id: i.id,
+    text: i.text ?? '',
+    impact: i.impact ?? null,
+    timeAmount: i.timeAmount ?? null,
+    timeUnit: i.timeUnit ?? 'weeks',
+    ease: i.ease ?? null,
+    selected: i.selected ?? false,
+    kpi: i.kpi ?? '',
+    solutions: (i.solutions ?? []).map((sol) => normalizeSolution(sol as Partial<PdcaSolution> & { id: string })),
+  }
+}
+
+function normalizeCycle(c: Partial<PdcaCycle> & { id: string }): PdcaCycle {
+  return {
+    id: c.id,
+    title: c.title ?? '',
+    kgiGoal: c.kgiGoal ?? '',
+    kgiDeadline: c.kgiDeadline ?? '',
+    currentState: c.currentState ?? '',
+    gap: c.gap ?? '',
+    issues: (c.issues ?? []).map((i) => normalizeIssue(i as Partial<PdcaIssue> & { id: string })),
+    createdAt: c.createdAt ?? Date.now(),
+    updatedAt: c.updatedAt ?? Date.now(),
+  }
+}
+
+function normalizeDoLog(l: Partial<PdcaDoLog> & { id: string }): PdcaDoLog {
+  return {
+    id: l.id,
+    solutionId: l.solutionId ?? '',
+    date: l.date ?? '',
+    done: l.done ?? false,
+    note: l.note ?? '',
+  }
+}
+
+const MAX_SELECTED_ISSUES = 3
+
+interface PdcaStore {
+  cycles: PdcaCycle[]
+  activeCycleId: string | null
+  doLogs: PdcaDoLog[]
   driveFileId?: string
-  getEntry: (date: string) => ReflectionEntry | undefined
-  upsertEntry: (
-    date: string,
-    patch: Partial<Pick<ReflectionEntry, 'problem' | 'improvement' | 'goalAction'>>,
+  activeCycle: () => PdcaCycle | undefined
+  setActiveCycleId: (id: string | null) => void
+  createCycle: (title: string) => string
+  updateCycle: (
+    cycleId: string,
+    patch: Partial<Pick<PdcaCycle, 'title' | 'kgiGoal' | 'kgiDeadline' | 'currentState' | 'gap'>>,
   ) => void
-  deleteEntry: (id: string) => void
-  setDriveFileId: (driveFileId: string) => void
-  mergeFromDrive: (remoteEntries: ReflectionEntry[]) => void
-}
-
-export const useReflectionStore = create<ReflectionStore>()(
-  persist(
-    (set, get) => ({
-      entries: [],
-      driveFileId: undefined,
-      getEntry: (date) => get().entries.find((e) => e.date === date),
-      upsertEntry: (date, patch) => {
-        set((s) => {
-          const existing = s.entries.find((e) => e.date === date)
-          if (existing) {
-            return {
-              entries: s.entries.map((e) =>
-                e.id === existing.id ? { ...e, ...patch, updatedAt: Date.now() } : e,
-              ),
-            }
-          }
-          const entry: ReflectionEntry = {
-            id: nanoid(8),
-            date,
-            problem: '',
-            improvement: '',
-            goalAction: '',
-            ...patch,
-            updatedAt: Date.now(),
-          }
-          return { entries: [...s.entries, entry] }
-        })
-      },
-      deleteEntry: (id) => {
-        set((s) => ({ entries: s.entries.filter((e) => e.id !== id) }))
-      },
-      setDriveFileId: (driveFileId) => set({ driveFileId }),
-      mergeFromDrive: (remoteEntries) => {
-        set((s) => {
-          const merged = [...s.entries]
-          for (const remote of remoteEntries) {
-            const localIndex = merged.findIndex((e) => e.date === remote.date)
-            if (localIndex === -1) {
-              merged.push(remote)
-            } else if (remote.updatedAt > merged[localIndex].updatedAt) {
-              merged[localIndex] = remote
-            }
-          }
-          return { entries: merged }
-        })
-      },
-    }),
-    { name: 'flowcraft-reflections' },
-  ),
-)
-
-interface GoalStore {
-  goals: MonthlyGoal[]
-  driveFileId?: string
-  getGoal: (month: string) => MonthlyGoal | undefined
-  upsertGoal: (
-    month: string,
-    patch: Partial<Pick<MonthlyGoal, 'plan' | 'doPlan' | 'check' | 'act'>>,
+  deleteCycle: (cycleId: string) => void
+  addIssue: (cycleId: string, text: string) => void
+  updateIssue: (cycleId: string, issueId: string, text: string) => void
+  deleteIssue: (cycleId: string, issueId: string) => void
+  rateIssue: (
+    cycleId: string,
+    issueId: string,
+    patch: Partial<Pick<PdcaIssue, 'impact' | 'timeAmount' | 'timeUnit' | 'ease' | 'kpi'>>,
   ) => void
+  toggleIssueSelected: (cycleId: string, issueId: string) => void
+  addSolution: (cycleId: string, issueId: string, text: string) => void
+  updateSolution: (cycleId: string, issueId: string, solutionId: string, text: string) => void
+  deleteSolution: (cycleId: string, issueId: string, solutionId: string) => void
+  rateSolution: (
+    cycleId: string,
+    issueId: string,
+    solutionId: string,
+    patch: Partial<Pick<PdcaSolution, 'impact' | 'timeHours' | 'ease'>>,
+  ) => void
+  upsertDoLog: (solutionId: string, date: string, patch: Partial<Pick<PdcaDoLog, 'done' | 'note'>>) => void
   setDriveFileId: (driveFileId: string) => void
-  mergeFromDrive: (remoteGoals: MonthlyGoal[]) => void
+  mergeFromDrive: (remoteCycles: PdcaCycle[]) => void
 }
 
-export const useGoalStore = create<GoalStore>()(
+export const usePdcaStore = create<PdcaStore>()(
   persist(
     (set, get) => ({
-      goals: [],
+      cycles: [],
+      activeCycleId: null,
+      doLogs: [],
       driveFileId: undefined,
-      getGoal: (month) => get().goals.find((g) => g.month === month),
-      upsertGoal: (month, patch) => {
-        set((s) => {
-          const existing = s.goals.find((g) => g.month === month)
-          if (existing) {
-            return {
-              goals: s.goals.map((g) =>
-                g.id === existing.id ? { ...g, ...patch, updatedAt: Date.now() } : g,
-              ),
-            }
-          }
-          const goal: MonthlyGoal = {
-            id: nanoid(8),
-            month,
-            plan: '',
-            doPlan: '',
-            check: '',
-            act: '',
-            ...patch,
-            updatedAt: Date.now(),
-          }
-          return { goals: [...s.goals, goal] }
-        })
-      },
-      setDriveFileId: (driveFileId) => set({ driveFileId }),
-      mergeFromDrive: (remoteGoals) => {
-        set((s) => {
-          const merged = [...s.goals]
-          for (const remote of remoteGoals) {
-            const localIndex = merged.findIndex((g) => g.month === remote.month)
-            if (localIndex === -1) {
-              merged.push(remote)
-            } else if (remote.updatedAt > merged[localIndex].updatedAt) {
-              merged[localIndex] = remote
-            }
-          }
-          return { goals: merged }
-        })
-      },
-    }),
-    { name: 'flowcraft-goals' },
-  ),
-)
-
-interface GoalProfileStore extends GoalProfile {
-  setGoal: (patch: Partial<Pick<GoalProfile, 'title' | 'why'>>) => void
-  setRoadmapDocId: (roadmapDocId: string) => void
-  setDriveFileId: (driveFileId: string) => void
-  mergeFromDrive: (remote: GoalProfile) => void
-}
-
-export const useGoalProfileStore = create<GoalProfileStore>()(
-  persist(
-    (set, get) => ({
-      title: '',
-      why: '',
-      roadmapDocId: undefined,
-      driveFileId: undefined,
-      updatedAt: 0,
-      setGoal: (patch) => set({ ...patch, updatedAt: Date.now() }),
-      setRoadmapDocId: (roadmapDocId) => set({ roadmapDocId, updatedAt: Date.now() }),
-      setDriveFileId: (driveFileId) => set({ driveFileId }),
-      mergeFromDrive: (remote) => {
-        if (remote.updatedAt > get().updatedAt) {
-          set({ ...remote })
+      activeCycle: () => get().cycles.find((c) => c.id === get().activeCycleId),
+      setActiveCycleId: (id) => set({ activeCycleId: id }),
+      createCycle: (title) => {
+        const id = nanoid(8)
+        const cycle: PdcaCycle = {
+          id,
+          title,
+          kgiGoal: '',
+          kgiDeadline: '',
+          currentState: '',
+          gap: '',
+          issues: [],
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
         }
+        set((s) => ({ cycles: [...s.cycles, cycle], activeCycleId: id }))
+        return id
+      },
+      updateCycle: (cycleId, patch) => {
+        set((s) => ({
+          cycles: s.cycles.map((c) => (c.id === cycleId ? { ...c, ...patch, updatedAt: Date.now() } : c)),
+        }))
+      },
+      deleteCycle: (cycleId) => {
+        set((s) => ({
+          cycles: s.cycles.filter((c) => c.id !== cycleId),
+          activeCycleId: s.activeCycleId === cycleId ? null : s.activeCycleId,
+        }))
+      },
+      addIssue: (cycleId, text) => {
+        const issue: PdcaIssue = {
+          id: nanoid(6),
+          text,
+          impact: null,
+          timeAmount: null,
+          timeUnit: 'weeks',
+          ease: null,
+          selected: false,
+          kpi: '',
+          solutions: [],
+        }
+        set((s) => ({
+          cycles: s.cycles.map((c) =>
+            c.id === cycleId ? { ...c, issues: [...c.issues, issue], updatedAt: Date.now() } : c,
+          ),
+        }))
+      },
+      updateIssue: (cycleId, issueId, text) => {
+        set((s) => ({
+          cycles: s.cycles.map((c) =>
+            c.id === cycleId
+              ? {
+                  ...c,
+                  issues: c.issues.map((i) => (i.id === issueId ? { ...i, text } : i)),
+                  updatedAt: Date.now(),
+                }
+              : c,
+          ),
+        }))
+      },
+      deleteIssue: (cycleId, issueId) => {
+        set((s) => ({
+          cycles: s.cycles.map((c) =>
+            c.id === cycleId
+              ? { ...c, issues: c.issues.filter((i) => i.id !== issueId), updatedAt: Date.now() }
+              : c,
+          ),
+        }))
+      },
+      rateIssue: (cycleId, issueId, patch) => {
+        set((s) => ({
+          cycles: s.cycles.map((c) =>
+            c.id === cycleId
+              ? {
+                  ...c,
+                  issues: c.issues.map((i) => (i.id === issueId ? { ...i, ...patch } : i)),
+                  updatedAt: Date.now(),
+                }
+              : c,
+          ),
+        }))
+      },
+      toggleIssueSelected: (cycleId, issueId) => {
+        set((s) => ({
+          cycles: s.cycles.map((c) => {
+            if (c.id !== cycleId) return c
+            const target = c.issues.find((i) => i.id === issueId)
+            if (!target) return c
+            const selectedCount = c.issues.filter((i) => i.selected).length
+            if (!target.selected && selectedCount >= MAX_SELECTED_ISSUES) return c
+            return {
+              ...c,
+              issues: c.issues.map((i) => (i.id === issueId ? { ...i, selected: !i.selected } : i)),
+              updatedAt: Date.now(),
+            }
+          }),
+        }))
+      },
+      addSolution: (cycleId, issueId, text) => {
+        set((s) => ({
+          cycles: s.cycles.map((c) =>
+            c.id === cycleId
+              ? {
+                  ...c,
+                  issues: c.issues.map((i) =>
+                    i.id === issueId
+                      ? {
+                          ...i,
+                          solutions: [
+                            ...i.solutions,
+                            { id: nanoid(6), text, impact: null, timeHours: null, ease: null },
+                          ],
+                        }
+                      : i,
+                  ),
+                  updatedAt: Date.now(),
+                }
+              : c,
+          ),
+        }))
+      },
+      updateSolution: (cycleId, issueId, solutionId, text) => {
+        set((s) => ({
+          cycles: s.cycles.map((c) =>
+            c.id === cycleId
+              ? {
+                  ...c,
+                  issues: c.issues.map((i) =>
+                    i.id === issueId
+                      ? {
+                          ...i,
+                          solutions: i.solutions.map((sol) => (sol.id === solutionId ? { ...sol, text } : sol)),
+                        }
+                      : i,
+                  ),
+                  updatedAt: Date.now(),
+                }
+              : c,
+          ),
+        }))
+      },
+      deleteSolution: (cycleId, issueId, solutionId) => {
+        set((s) => ({
+          cycles: s.cycles.map((c) =>
+            c.id === cycleId
+              ? {
+                  ...c,
+                  issues: c.issues.map((i) =>
+                    i.id === issueId
+                      ? { ...i, solutions: i.solutions.filter((sol) => sol.id !== solutionId) }
+                      : i,
+                  ),
+                  updatedAt: Date.now(),
+                }
+              : c,
+          ),
+        }))
+      },
+      rateSolution: (cycleId, issueId, solutionId, patch) => {
+        set((s) => ({
+          cycles: s.cycles.map((c) =>
+            c.id === cycleId
+              ? {
+                  ...c,
+                  issues: c.issues.map((i) =>
+                    i.id === issueId
+                      ? {
+                          ...i,
+                          solutions: i.solutions.map((sol) =>
+                            sol.id === solutionId ? { ...sol, ...patch } : sol,
+                          ),
+                        }
+                      : i,
+                  ),
+                  updatedAt: Date.now(),
+                }
+              : c,
+          ),
+        }))
+      },
+      upsertDoLog: (solutionId, date, patch) => {
+        set((s) => {
+          const existing = s.doLogs.find((l) => l.solutionId === solutionId && l.date === date)
+          if (existing) {
+            return {
+              doLogs: s.doLogs.map((l) => (l.id === existing.id ? { ...l, ...patch } : l)),
+            }
+          }
+          return {
+            doLogs: [
+              ...s.doLogs,
+              { id: nanoid(6), solutionId, date, done: false, note: '', ...patch },
+            ],
+          }
+        })
+      },
+      setDriveFileId: (driveFileId) => set({ driveFileId }),
+      mergeFromDrive: (remoteCycles) => {
+        set((s) => {
+          const merged = [...s.cycles]
+          for (const rawRemote of remoteCycles) {
+            const remote = normalizeCycle(rawRemote)
+            const localIndex = merged.findIndex((c) => c.id === remote.id)
+            if (localIndex === -1) {
+              merged.push(remote)
+            } else if (remote.updatedAt > merged[localIndex].updatedAt) {
+              merged[localIndex] = remote
+            }
+          }
+          return { cycles: merged }
+        })
       },
     }),
-    { name: 'flowcraft-goal-profile' },
+    {
+      name: 'flowcraft-pdca',
+      version: 4,
+      migrate: (persisted) => {
+        const state = persisted as { cycles?: unknown[]; doLogs?: unknown[] } | undefined
+        const cycles = Array.isArray(state?.cycles)
+          ? state.cycles.map((c) => normalizeCycle(c as Partial<PdcaCycle> & { id: string }))
+          : []
+        const doLogs = Array.isArray(state?.doLogs)
+          ? state.doLogs.map((l) => normalizeDoLog(l as Partial<PdcaDoLog> & { id: string }))
+          : []
+        return { ...state, cycles, doLogs }
+      },
+    },
   ),
 )
+

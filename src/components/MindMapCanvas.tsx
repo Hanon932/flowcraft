@@ -23,6 +23,8 @@ export default function MindMapCanvas() {
   const addMindMapRoot = useFlowStore((s) => s.addMindMapRoot)
   const deleteStep = useFlowStore((s) => s.deleteStep)
   const requestEditNode = useFlowStore((s) => s.requestEditNode)
+  const swapMindMapSiblings = useFlowStore((s) => s.swapMindMapSiblings)
+  const applyMindMapLayout = useFlowStore((s) => s.applyMindMapLayout)
 
   const rfInstance = useRef<ReactFlowInstance | null>(null)
   const [contextMenu, setContextMenu] = useState<{
@@ -86,6 +88,30 @@ export default function MindMapCanvas() {
     }
   }
 
+  function handleNodeDragStop(_: unknown, dragged: Node) {
+    if (!doc.mindMapAutoLayout) return
+    const dw = dragged.width ?? 170
+    const dh = dragged.height ?? 50
+    const overlapTarget = doc.nodes.find((n) => {
+      if (n.id === dragged.id) return false
+      const nw = n.width ?? 170
+      const nh = n.height ?? 50
+      return (
+        dragged.position.x < n.position.x + nw &&
+        dragged.position.x + dw > n.position.x &&
+        dragged.position.y < n.position.y + nh &&
+        dragged.position.y + dh > n.position.y
+      )
+    })
+    if (overlapTarget) {
+      swapMindMapSiblings(dragged.id, overlapTarget.id)
+    } else {
+      // Missed every node - snap back to the computed layout instead of
+      // leaving it wherever the drag happened to end.
+      applyMindMapLayout(doc.mindMapAutoLayout)
+    }
+  }
+
   function handlePaneContextMenu(e: React.MouseEvent) {
     e.preventDefault()
     if (mode !== 'edit') return
@@ -108,10 +134,11 @@ export default function MindMapCanvas() {
         onNodesChange={mode === 'edit' ? onNodesChange : undefined}
         onEdgesChange={mode === 'edit' ? onEdgesChange : undefined}
         onConnect={mode === 'edit' ? onConnect : undefined}
-        nodesDraggable={mode === 'edit' && !doc.mindMapAutoLayout}
+        nodesDraggable={mode === 'edit'}
         nodesConnectable={mode === 'edit'}
         elementsSelectable
         onNodeClick={(_, node) => setSelectedNodeId(node.id)}
+        onNodeDragStop={handleNodeDragStop}
         onPaneClick={() => {
           setSelectedNodeId(null)
           setContextMenu(null)
