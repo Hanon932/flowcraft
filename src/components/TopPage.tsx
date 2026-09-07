@@ -42,6 +42,13 @@ const FEATURES: {
     description: 'KGI・ギャップ・KPI・DOを日々見直し、実行を記録する。',
     accent: 'from-[#ff3b30]/15 to-[#ff3b30]/0',
   },
+  {
+    key: 'status',
+    icon: '📊',
+    title: 'ステータス',
+    description: '基礎力・応用力などの自分の能力をレーダーチャートで可視化する。',
+    accent: 'from-[#5ac8fa]/15 to-[#5ac8fa]/0',
+  },
 ]
 
 export default function TopPage() {

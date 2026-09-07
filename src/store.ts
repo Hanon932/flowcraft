@@ -702,7 +702,7 @@ export const useFlowStore = create<FlowStore>()(
   ),
 )
 
-export type UiSection = DocKind | 'reflection' | 'daily' | 'home'
+export type UiSection = DocKind | 'reflection' | 'daily' | 'home' | 'status'
 
 interface UiStore {
   section: UiSection

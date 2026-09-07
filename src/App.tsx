@@ -6,6 +6,7 @@ import ManualPanel from './components/ManualPanel'
 import MindMapCanvas from './components/MindMapCanvas'
 import PdcaPanel from './components/PdcaPanel'
 import Sidebar from './components/Sidebar'
+import StatusPage from './components/StatusPage'
 import Toolbar from './components/Toolbar'
 import TopPage from './components/TopPage'
 import { redo, undo } from './history'
@@ -86,6 +87,8 @@ function App() {
           <div className="mx-auto flex h-full w-full max-w-3xl min-h-0 flex-col p-6">
             <DailyPanel />
           </div>
+        ) : section === 'status' ? (
+          <StatusPage />
         ) : (
           <>
             <Toolbar />

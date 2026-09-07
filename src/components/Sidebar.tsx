@@ -8,6 +8,7 @@ const TABS: { key: UiSection; label: string; icon: string }[] = [
   { key: 'freeform', label: 'ホワイトボード', icon: '🖊️' },
   { key: 'reflection', label: 'PDCA', icon: '⚡' },
   { key: 'daily', label: '毎日の振り返り', icon: '📅' },
+  { key: 'status', label: 'ステータス', icon: '📊' },
 ]
 
 const DOC_LIST_SECTIONS: UiSection[] = ['flowchart', 'mindmap', 'freeform']
@@ -73,6 +74,10 @@ export default function Sidebar() {
           ) : section === 'daily' ? (
             <p className="px-4 py-4 text-xs leading-relaxed text-[#86868b]">
               KGI・ギャップ・KPI・DOを毎日確認しながら、DOを実行できたか記録する場所です。
+            </p>
+          ) : section === 'status' ? (
+            <p className="px-4 py-4 text-xs leading-relaxed text-[#86868b]">
+              基礎力・応用力などのカテゴリごとに、自分の能力をレーダーチャートで可視化する場所です。
             </p>
           ) : (
             <>
