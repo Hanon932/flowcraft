@@ -1,16 +1,9 @@
 import { useRef } from 'react'
 import { redo, undo, useUndoStatus } from '../history'
 import { useFlowStore } from '../store'
-import type { FlowDoc, FreeShape } from '../types'
+import type { FlowDoc } from '../types'
 import GoogleDriveMenu from './GoogleDriveMenu'
 import MindMapLayoutMenu from './MindMapLayoutMenu'
-
-const FREE_SHAPES: { key: FreeShape; icon: string; label: string }[] = [
-  { key: 'rectangle', icon: '▭', label: '四角形を追加' },
-  { key: 'oval', icon: '◖◗', label: '角丸を追加' },
-  { key: 'diamond', icon: '◇', label: 'ひし形を追加' },
-  { key: 'parallelogram', icon: '▱', label: '平行四辺形を追加' },
-]
 
 export default function Toolbar() {
   const doc = useFlowStore((s) => s.activeDoc())
@@ -19,7 +12,6 @@ export default function Toolbar() {
   const renameFlow = useFlowStore((s) => s.renameFlow)
   const addStep = useFlowStore((s) => s.addStep)
   const applyFlowchartLayout = useFlowStore((s) => s.applyFlowchartLayout)
-  const addFreeShape = useFlowStore((s) => s.addFreeShape)
   const importDoc = useFlowStore((s) => s.importDoc)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const kind = doc.kind ?? 'flowchart'
@@ -84,22 +76,6 @@ export default function Toolbar() {
         )}
 
         {mode === 'edit' && kind === 'mindmap' && <MindMapLayoutMenu />}
-
-        {mode === 'edit' && kind === 'freeform' && (
-          <div className="flex gap-1 rounded-full bg-[#f5f5f7] p-0.5">
-            {FREE_SHAPES.map((s) => (
-              <button
-                key={s.key}
-                type="button"
-                title={s.label}
-                onClick={() => addFreeShape(s.key)}
-                className="flex h-7 w-7 items-center justify-center rounded-full text-sm text-[#86868b] transition-colors duration-200 hover:bg-white hover:text-[#0071e3] hover:shadow-sm"
-              >
-                {s.icon}
-              </button>
-            ))}
-          </div>
-        )}
 
         <div className="flex items-center gap-0.5">
           <button

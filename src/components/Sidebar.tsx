@@ -5,13 +5,10 @@ import type { DocKind } from '../types'
 const TABS: { key: UiSection; label: string; icon: string }[] = [
   { key: 'flowchart', label: 'フローチャート', icon: '🗂️' },
   { key: 'mindmap', label: 'マインドマップ', icon: '🧠' },
-  { key: 'freeform', label: 'ホワイトボード', icon: '🖊️' },
-  { key: 'reflection', label: 'PDCA', icon: '⚡' },
-  { key: 'daily', label: '毎日の振り返り', icon: '📅' },
   { key: 'status', label: 'ステータス', icon: '📊' },
 ]
 
-const DOC_LIST_SECTIONS: UiSection[] = ['flowchart', 'mindmap', 'freeform']
+const DOC_LIST_SECTIONS: UiSection[] = ['flowchart', 'mindmap']
 
 export default function Sidebar() {
   const docs = useFlowStore((s) => s.docs)

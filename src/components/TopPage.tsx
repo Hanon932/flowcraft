@@ -22,27 +22,6 @@ const FEATURES: {
     accent: 'from-[#af52de]/15 to-[#af52de]/0',
   },
   {
-    key: 'freeform',
-    icon: '🖊️',
-    title: 'ホワイトボード',
-    description: '罫線に縛られず、図形や付箋で自由に書き出す。',
-    accent: 'from-[#34c759]/15 to-[#34c759]/0',
-  },
-  {
-    key: 'reflection',
-    icon: '⚡',
-    title: 'PDCA',
-    description: '大目標から課題を洗い出し、優先順位をつけて鬼速で回す。',
-    accent: 'from-[#ff9500]/15 to-[#ff9500]/0',
-  },
-  {
-    key: 'daily',
-    icon: '📅',
-    title: '毎日の振り返り',
-    description: 'KGI・ギャップ・KPI・DOを日々見直し、実行を記録する。',
-    accent: 'from-[#ff3b30]/15 to-[#ff3b30]/0',
-  },
-  {
     key: 'status',
     icon: '📊',
     title: 'ステータス',

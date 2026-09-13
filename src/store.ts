@@ -22,7 +22,6 @@ import type {
   AnyStepNode,
   DocKind,
   FlowDoc,
-  FreeShape,
   MindMapLayoutStyle,
   MindMapNodeData,
   PdcaCycle,
@@ -50,13 +49,6 @@ function withAutoLayout(doc: FlowDoc): FlowDoc {
   }
 }
 
-const FREE_SHAPE_SIZE: Record<FreeShape, { width: number; height: number }> = {
-  rectangle: { width: 160, height: 90 },
-  oval: { width: 160, height: 90 },
-  diamond: { width: 200, height: 140 },
-  parallelogram: { width: 180, height: 90 },
-}
-
 function createDoc(name: string, kind: DocKind = 'flowchart'): FlowDoc {
   if (kind === 'mindmap') {
     return {
@@ -71,16 +63,6 @@ function createDoc(name: string, kind: DocKind = 'flowchart'): FlowDoc {
           data: { text: '中心テーマ', root: true },
         },
       ],
-      edges: [],
-      updatedAt: Date.now(),
-    }
-  }
-  if (kind === 'freeform') {
-    return {
-      id: nanoid(8),
-      name,
-      kind: 'freeform',
-      nodes: [],
       edges: [],
       updatedAt: Date.now(),
     }
@@ -135,7 +117,6 @@ interface FlowStore {
   addMindMapRoot: (position: { x: number; y: number }) => void
   applyMindMapLayout: (style: MindMapLayoutStyle | null) => void
   swapMindMapSiblings: (nodeIdA: string, nodeIdB: string) => void
-  addFreeShape: (shape: FreeShape) => void
   updateStep: (nodeId: string, data: Partial<StepData>) => void
   deleteStep: (nodeId: string) => void
   copySelectedNode: () => void
@@ -219,8 +200,7 @@ export const useFlowStore = create<FlowStore>()(
 
       createFlow: (kind) => {
         const countOfKind = get().docs.filter((d) => (d.kind ?? 'flowchart') === kind).length
-        const label =
-          kind === 'mindmap' ? 'マインドマップ' : kind === 'freeform' ? 'ホワイトボード' : '新しいフロー'
+        const label = kind === 'mindmap' ? 'マインドマップ' : '新しいフロー'
         const doc = createDoc(`${label} ${countOfKind + 1}`, kind)
         set((s) => ({ docs: [...s.docs, doc], activeId: doc.id, selectedNodeId: null }))
       },
@@ -532,39 +512,6 @@ export const useFlowStore = create<FlowStore>()(
                 }
               : d,
           ),
-        }))
-      },
-      addFreeShape: (shape) => {
-        const id = nanoid(6)
-        const { width, height } = FREE_SHAPE_SIZE[shape]
-        set((s) => ({
-          docs: s.docs.map((d) =>
-            d.id === s.activeId
-              ? {
-                  ...d,
-                  nodes: [
-                    ...d.nodes,
-                    {
-                      id,
-                      type: 'freeshape',
-                      position: {
-                        x: 150 + (d.nodes.length % 4) * 240,
-                        y: 120 + Math.floor(d.nodes.length / 4) * 180,
-                      },
-                      width,
-                      height,
-                      data: {
-                        text: '',
-                        shape,
-                        color: BRANCH_COLORS[d.nodes.length % BRANCH_COLORS.length],
-                      },
-                    },
-                  ],
-                  updatedAt: Date.now(),
-                }
-              : d,
-          ),
-          selectedNodeId: id,
         }))
       },
       updateStep: (nodeId, data) => {

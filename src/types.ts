@@ -12,7 +12,7 @@ export interface StepData {
 
 export type StepNode = Node<StepData>
 
-export type DocKind = 'flowchart' | 'mindmap' | 'freeform'
+export type DocKind = 'flowchart' | 'mindmap'
 
 export type MindMapLayoutStyle = 'radial' | 'tree' | 'vertical' | 'balanced'
 
@@ -26,17 +26,6 @@ export interface MindMapNodeData {
 
 export type MindMapNode = Node<MindMapNodeData>
 
-export type FreeShape = 'rectangle' | 'oval' | 'diamond' | 'parallelogram'
-
-export interface FreeShapeData {
-  text: string
-  shape: FreeShape
-  color?: string
-  [key: string]: unknown
-}
-
-export type FreeShapeNode = Node<FreeShapeData>
-
 export interface StickyNoteData {
   text: string
   color?: string
@@ -45,7 +34,7 @@ export interface StickyNoteData {
 
 export type StickyNoteNode = Node<StickyNoteData>
 
-export type AnyStepNode = StepNode | MindMapNode | FreeShapeNode | StickyNoteNode
+export type AnyStepNode = StepNode | MindMapNode | StickyNoteNode
 
 export interface FlowDoc {
   id: string

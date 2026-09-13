@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import DailyPanel from './components/DailyPanel'
 import FlowCanvas from './components/FlowCanvas'
-import FreeCanvas from './components/FreeCanvas'
 import ManualPanel from './components/ManualPanel'
 import MindMapCanvas from './components/MindMapCanvas'
 import PdcaPanel from './components/PdcaPanel'
@@ -94,13 +93,7 @@ function App() {
             <Toolbar />
             <div className="flex min-h-0 flex-1">
               <div className="min-w-0 flex-1">
-                {kind === 'mindmap' ? (
-                  <MindMapCanvas />
-                ) : kind === 'freeform' ? (
-                  <FreeCanvas />
-                ) : (
-                  <FlowCanvas />
-                )}
+                {kind === 'mindmap' ? <MindMapCanvas /> : <FlowCanvas />}
               </div>
               {kind === 'flowchart' && (
                 <div
